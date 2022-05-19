@@ -1,0 +1,13 @@
+[package]
+name = "graphql-substrate"
+version = "0.1.1"
+authors = ["Jovansonlee Cesar <ivanceras@gmail.com>"]
+edition = "2021"
+
+[dependencies]
+async-graphql = { version = "4.0.0" }
+slab = "0.4.2"
+node-template-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "master" }
+substrate-api-client = { git = "https://github.com/scs/substrate-api-client.git", branch = "master" }
+sp-core = { version = "6.0.0", default-features = false, features = ["full_crypto"], git = "https://github.com/paritytech/substrate.git", branch = "master" }
+sp-runtime = { version = "6.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }

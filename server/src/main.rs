@@ -1,3 +1,4 @@
+#![deny(warnings)]
 use async_graphql::{
     http::{playground_source, GraphQLPlaygroundConfig},
     EmptyMutation, EmptySubscription, Schema,
@@ -9,10 +10,10 @@ use axum::{
     routing::get,
     Router, Server,
 };
-use starwars::{QueryRoot, StarWars, StarWarsSchema};
+use graphql_substrate::{ChainApi, ChainApiSchema, QueryRoot};
 
 async fn graphql_handler(
-    schema: Extension<StarWarsSchema>,
+    schema: Extension<ChainApiSchema>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
     schema.execute(req.into_inner()).await.into()
@@ -25,7 +26,7 @@ async fn graphql_playground() -> impl IntoResponse {
 #[tokio::main]
 async fn main() {
     let schema = Schema::build(QueryRoot, EmptyMutation, EmptySubscription)
-        .data(StarWars::new())
+        .data(ChainApi::new())
         .finish();
 
     let app = Router::new()
