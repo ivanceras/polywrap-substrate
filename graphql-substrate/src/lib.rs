@@ -1,19 +1,14 @@
-mod model;
-
-use std::collections::HashMap;
-
+#![deny(warnings)]
 use async_graphql::{EmptyMutation, EmptySubscription, Schema};
 pub use model::QueryRoot;
-use slab::Slab;
-
-use node_template_runtime::{Block, Header};
+use node_template_runtime::Block;
 use sp_core::sr25519;
-use sp_runtime::generic::SignedBlock as SignedBlockG;
-use std::sync::mpsc::channel;
 use substrate_api_client::rpc::WsRpcClient;
 use substrate_api_client::{Api, PlainTipExtrinsicParams};
 
-pub type StarWarsSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
+mod model;
+
+pub type ChainApiSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
 
 pub struct BlockDetail {
     id: String,

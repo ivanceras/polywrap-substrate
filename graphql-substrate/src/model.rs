@@ -1,12 +1,8 @@
 #![allow(clippy::needless_lifetimes)]
 
-use async_graphql::{
-    connection::{query, Connection, Edge},
-    Context, Enum, Error, Interface, Object, OutputType, Result,
-};
-
 use super::ChainApi;
 use crate::BlockDetail;
+use async_graphql::{Context, Object};
 
 pub struct Block(BlockDetail);
 
