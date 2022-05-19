@@ -9,7 +9,7 @@ use axum::{
     routing::get,
     Router, Server,
 };
-use starwars::{QueryRoot, StarWars, StarWarsSchema};
+use graphql_substrate::{ChainApi, QueryRoot, StarWarsSchema};
 
 async fn graphql_handler(
     schema: Extension<StarWarsSchema>,
@@ -25,7 +25,7 @@ async fn graphql_playground() -> impl IntoResponse {
 #[tokio::main]
 async fn main() {
     let schema = Schema::build(QueryRoot, EmptyMutation, EmptySubscription)
-        .data(StarWars::new())
+        .data(ChainApi::new())
         .finish();
 
     let app = Router::new()
