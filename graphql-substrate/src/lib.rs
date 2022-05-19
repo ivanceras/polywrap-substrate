@@ -11,33 +11,37 @@ mod model;
 pub type ChainApiSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
 
 pub struct BlockDetail {
-    id: String,
-    name: String,
+    parent_hash: String,
+    number: String,
+    state_root: String,
+    extrinsics_root: String,
 }
 
-pub struct ChainApi {}
+pub struct ChainApi {
+    api: Api<sr25519::Pair, WsRpcClient, PlainTipExtrinsicParams>,
+}
 
 impl ChainApi {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        ChainApi {}
+        let client = WsRpcClient::new("ws://127.0.0.1:9944");
+        let api = Api::<sr25519::Pair, _, PlainTipExtrinsicParams>::new(client).unwrap();
+        ChainApi { api }
     }
 
     pub fn block(&self, number: u32) -> Option<BlockDetail> {
-        let client = WsRpcClient::new("ws://127.0.0.1:9944");
-        let api = Api::<sr25519::Pair, _, PlainTipExtrinsicParams>::new(client).unwrap();
-
-        let head = api.get_finalized_head().unwrap().unwrap();
-        println!("head: {:#?}", head);
-        let block = api
+        let block = self
+            .api
             .get_block_by_num::<Block>(Some(number))
-            .unwrap()
-            .unwrap();
+            .ok()
+            .flatten();
 
-        println!("Genesis block: \n {:#?} \n", block);
-        Some(BlockDetail {
-            id: block.header.parent_hash.to_string(),
-            name: block.header.number.to_string(),
+        println!("block: \n {:#?} \n", block);
+        block.map(|block| BlockDetail {
+            parent_hash: block.header.parent_hash.to_string(),
+            number: block.header.number.to_string(),
+            state_root: block.header.state_root.to_string(),
+            extrinsics_root: block.header.extrinsics_root.to_string(),
         })
     }
 }

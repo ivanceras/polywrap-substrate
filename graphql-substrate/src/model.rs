@@ -6,17 +6,25 @@ use async_graphql::{Context, Object};
 
 pub struct Block(BlockDetail);
 
-/// A humanoid creature in the Star Wars universe.
+/// A chain block
 #[Object]
 impl Block {
-    /// The id of the block.
-    async fn id(&self) -> &String {
-        &self.0.id
+    /// The parent hash of the block
+    async fn parent_hash(&self) -> &str {
+        &self.0.parent_hash
     }
 
-    /// The name of the block.
-    async fn name(&self) -> &String {
-        &self.0.name
+    /// The number of the block.
+    async fn number(&self) -> &str {
+        &self.0.number
+    }
+
+    async fn state_root(&self) -> &str {
+        &self.0.state_root
+    }
+
+    async fn extrinsics_root(&self) -> &str {
+        &self.0.extrinsics_root
     }
 }
 
