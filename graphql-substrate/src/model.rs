@@ -1,7 +1,7 @@
 #![allow(clippy::needless_lifetimes)]
 
 use super::ChainApi;
-use crate::BlockDetail;
+use crate::{BlockDetail, Header};
 use async_graphql::{Context, Object};
 
 pub struct Block(BlockDetail);
@@ -9,14 +9,20 @@ pub struct Block(BlockDetail);
 /// A chain block
 #[Object]
 impl Block {
-    /// The parent hash of the block
-    async fn parent_hash(&self) -> &str {
-        &self.0.parent_hash
-    }
-
     /// The number of the block.
     async fn number(&self) -> &str {
         &self.0.number
+    }
+
+    async fn header(&self) -> &Header {
+        &self.0.header
+    }
+
+    /*
+
+    /// The parent hash of the block
+    async fn parent_hash(&self) -> &str {
+        &self.0.parent_hash
     }
 
     async fn state_root(&self) -> &str {
@@ -26,6 +32,7 @@ impl Block {
     async fn extrinsics_root(&self) -> &str {
         &self.0.extrinsics_root
     }
+    */
 }
 
 pub struct QueryRoot;

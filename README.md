@@ -12,11 +12,13 @@ Navigate to: http://localhost:8000
 Interact with the graphql endpoint with this example query to get the block
 ```graphql
 {
-  block(number: 0) {
+  block(number: 2) {
     number
-    parentHash
-    stateRoot
-    extrinsicsRoot
+    header {
+      parentHash
+      extrinsicsRoot
+      stateRoot
+    }
   }
 }
 ```
