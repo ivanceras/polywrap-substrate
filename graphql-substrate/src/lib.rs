@@ -32,7 +32,6 @@ impl Header {
 }
 
 pub struct BlockDetail {
-
     number: String,
     header: Header,
 }
@@ -58,7 +57,6 @@ impl ChainApi {
 
         println!("block: \n {:#?} \n", block);
         block.map(|block| BlockDetail {
-
             number: block.header.number.to_string(),
             header: Header {
                 parent_hash: block.header.parent_hash.to_string(),
@@ -66,5 +64,11 @@ impl ChainApi {
                 extrinsics_root: block.header.extrinsics_root.to_string(),
             },
         })
+    }
+
+    pub fn metadata(&self) -> Option<String> {
+        let metadata = self.api.get_metadata().ok();
+        dbg!(&metadata);
+        metadata.map(|m| serde_json::to_string(&m).expect("must serialize"))
     }
 }

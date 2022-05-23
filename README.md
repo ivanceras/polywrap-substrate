@@ -4,7 +4,7 @@
 Expose a substrate chain as a graphql endpoint
 
 ```shell
-cargo run --release
+cargo run -p server --release
 ```
 
 Navigate to: http://localhost:8000
@@ -21,6 +21,13 @@ Interact with the graphql endpoint with this example query to get the block
       stateRoot
     }
   }
+}
+```
+# Show the metadata
+
+```graphql
+{
+  metadata
 }
 ```
 

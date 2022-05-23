@@ -3,3 +3,5 @@ members = [
     "server",
     "graphql-substrate",
 ]
+
+default-members = ["server"]

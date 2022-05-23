@@ -9,7 +9,6 @@ pub struct Block(BlockDetail);
 /// A chain block
 #[Object]
 impl Block {
-
     /// The number of the block.
     async fn number(&self) -> &str {
         &self.0.number
@@ -30,5 +29,9 @@ impl QueryRoot {
         #[graphql(desc = "the block number")] number: u32,
     ) -> Option<Block> {
         ctx.data_unchecked::<ChainApi>().block(number).map(Block)
+    }
+
+    async fn metadata<'a>(&self, ctx: &Context<'a>) -> Option<String> {
+        ctx.data_unchecked::<ChainApi>().metadata()
     }
 }

@@ -1240,6 +1240,7 @@ version = "0.1.1"
 dependencies = [
  "async-graphql",
  "node-template-runtime",
+ "serde_json",
  "slab",
  "sp-core",
  "sp-runtime",
