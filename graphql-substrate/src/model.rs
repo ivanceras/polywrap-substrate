@@ -9,6 +9,7 @@ pub struct Block(BlockDetail);
 /// A chain block
 #[Object]
 impl Block {
+
     /// The number of the block.
     async fn number(&self) -> &str {
         &self.0.number
