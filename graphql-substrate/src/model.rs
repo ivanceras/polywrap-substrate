@@ -17,22 +17,6 @@ impl Block {
     async fn header(&self) -> &Header {
         &self.0.header
     }
-
-    /*
-
-    /// The parent hash of the block
-    async fn parent_hash(&self) -> &str {
-        &self.0.parent_hash
-    }
-
-    async fn state_root(&self) -> &str {
-        &self.0.state_root
-    }
-
-    async fn extrinsics_root(&self) -> &str {
-        &self.0.extrinsics_root
-    }
-    */
 }
 
 pub struct QueryRoot;
