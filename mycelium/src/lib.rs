@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use utils::FromHexString;
+use utils::FromHexStr;
 mod utils;
 use frame_metadata::RuntimeMetadataPrefixed;
 use sp_core::Decode;

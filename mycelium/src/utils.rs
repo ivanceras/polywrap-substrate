@@ -18,30 +18,26 @@
 #[cfg(not(feature = "std"))]
 extern crate alloc;
 #[cfg(not(feature = "std"))]
-use alloc::{string::String, string::ToString, vec::Vec};
+use alloc::vec::Vec;
 
 use hex::FromHexError;
 use sp_core::H256 as Hash;
 
-pub trait FromHexString {
+pub trait FromHexStr {
     fn from_hex(hex: &str) -> Result<Self, hex::FromHexError>
     where
         Self: Sized;
 }
 
-impl FromHexString for Vec<u8> {
+impl FromHexStr for Vec<u8> {
     fn from_hex(hex: &str) -> Result<Self, hex::FromHexError> {
-        let hexstr = hex
-            .trim_matches('\"')
-            .to_string()
-            .trim_start_matches("0x")
-            .to_string();
+        let hexstr = hex.trim_matches('\"').trim_start_matches("0x");
 
         hex::decode(&hexstr)
     }
 }
 
-impl FromHexString for Hash {
+impl FromHexStr for Hash {
     fn from_hex(hex: &str) -> Result<Self, FromHexError> {
         let vec = Vec::from_hex(hex)?;
 
@@ -52,21 +48,19 @@ impl FromHexString for Hash {
     }
 }
 
-/*
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
     #[test]
     fn test_hextstr_to_vec() {
-        assert_eq!(Vec::from_hex("0x01020a".to_string()), Ok(vec!(1, 2, 10)));
+        assert_eq!(Vec::from_hex("0x01020a"), Ok(vec!(1, 2, 10)));
         assert_eq!(
-            Vec::from_hex("null".to_string()),
+            Vec::from_hex("null"),
             Err(hex::FromHexError::InvalidHexCharacter { c: 'n', index: 0 })
         );
         assert_eq!(
-            Vec::from_hex("0x0q".to_string()),
+            Vec::from_hex("0x0q"),
             Err(hex::FromHexError::InvalidHexCharacter { c: 'q', index: 1 })
         );
     }
@@ -74,19 +68,16 @@ mod tests {
     #[test]
     fn test_hextstr_to_hash() {
         assert_eq!(
-            Hash::from_hex(
-                "0x0000000000000000000000000000000000000000000000000000000000000000".to_string()
-            ),
+            Hash::from_hex("0x0000000000000000000000000000000000000000000000000000000000000000"),
             Ok(Hash::from([0u8; 32]))
         );
         assert_eq!(
-            Hash::from_hex("0x010000000000000000".to_string()),
+            Hash::from_hex("0x010000000000000000"),
             Err(hex::FromHexError::InvalidStringLength)
         );
         assert_eq!(
-            Hash::from_hex("0x0q".to_string()),
+            Hash::from_hex("0x0q"),
             Err(hex::FromHexError::InvalidHexCharacter { c: 'q', index: 1 })
         );
     }
 }
-*/
