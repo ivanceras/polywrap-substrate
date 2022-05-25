@@ -2,6 +2,7 @@
 members = [
     "server",
     "graphql-substrate",
+    "mycelium",
 ]
 
 default-members = ["server"]
