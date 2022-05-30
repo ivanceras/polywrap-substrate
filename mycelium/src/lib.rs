@@ -41,8 +41,13 @@ pub async fn fetch_metadata() -> Result<Metadata, reqwest::Error> {
 }
 
 // curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "rpc_methods"}' http://localhost:9933/
-pub async fn fetch_rpc_methods() -> Result<JsonResult, reqwest::Error> {
-    json_request("rpc_methods", ()).await
+pub async fn fetch_rpc_methods() -> Result<Vec<String>, reqwest::Error> {
+    let result = json_request("rpc_methods", ()).await?;
+    log::info!("result: {:#?}", result);
+    let methods: Vec<String> =
+        serde_json::from_value(result.result["methods"].clone()).expect("must deserialize");
+    log::info!("methods: {:#?}", methods);
+    Ok(methods)
 }
 
 /// return the block hash of block number `n`

@@ -6,17 +6,31 @@ pub fn start() {
     console_log::init_with_level(log::Level::Trace).unwrap();
     console_error_panic_hook::set_once();
     log::info!("starting...");
-    show_metadata();
+    //show_metadata();
+    show_rpc_methods();
 }
 
 fn show_metadata() {
     spawn_local(async {
         let metadata = mycelium::fetch_metadata().await.expect("must not error");
-        log::info!("metadata: {:#?}", metadata);
+        //log::info!("metadata: {:#?}", metadata);
         let document: web_sys::Document = web_sys::window().unwrap().document().unwrap();
         let body = document.body().unwrap();
         let pre = document.create_element("pre").unwrap();
         let text = document.create_text_node(&format!("{:#?}", metadata));
+        pre.append_with_node_1(&text).unwrap();
+        body.append_with_node_1(&pre).expect("must be appended");
+    });
+}
+
+fn show_rpc_methods() {
+    spawn_local(async {
+        let rpc_methods = mycelium::fetch_rpc_methods().await.expect("must not error");
+        log::info!("rpc_methods: {:#?}", rpc_methods);
+        let document: web_sys::Document = web_sys::window().unwrap().document().unwrap();
+        let body = document.body().unwrap();
+        let pre = document.create_element("pre").unwrap();
+        let text = document.create_text_node(&format!("{:#?}", rpc_methods));
         pre.append_with_node_1(&text).unwrap();
         body.append_with_node_1(&pre).expect("must be appended");
     });
