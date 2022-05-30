@@ -1,8 +1,12 @@
 use serde::{Deserialize, Serialize};
 use utils::FromHexStr;
 mod utils;
+use crate::metadata::Metadata;
 use frame_metadata::RuntimeMetadataPrefixed;
 use sp_core::Decode;
+
+mod metadata;
+mod storage;
 
 #[derive(Serialize, Deserialize)]
 pub struct JsonReq {
@@ -20,26 +24,39 @@ pub struct JsonResult {
 }
 
 // curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "state_getMetadata"}' http://localhost:9933/
-pub async fn fetch_metadata() -> Result<(), reqwest::Error> {
-    let param: Vec<usize> = vec![];
-    let result = json_request("state_getMetadata", param).await?;
+pub async fn fetch_runtime_metadata() -> Result<RuntimeMetadataPrefixed, reqwest::Error> {
+    let result = json_request("state_getMetadata", ()).await?;
     let result_str = result.result.as_str().expect("must be a str");
-    let meta = Vec::from_hex(result_str).expect("must decode hex");
-    let metadata = RuntimeMetadataPrefixed::decode(&mut meta.as_slice()).expect("must not error");
-    dbg!(&metadata);
-    Ok(())
+    let data = Vec::from_hex(result_str).expect("must decode hex");
+    let rt_metadata =
+        RuntimeMetadataPrefixed::decode(&mut data.as_slice()).expect("must not error");
+    dbg!(&rt_metadata);
+    Ok(rt_metadata)
+}
+
+pub async fn fetch_metadata() -> Result<Metadata, reqwest::Error> {
+    let rt_metadata = fetch_runtime_metadata().await?;
+    let metadata = Metadata::try_from(rt_metadata).expect("must convert");
+    Ok(metadata)
 }
 
 // curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "rpc_methods"}' http://localhost:9933/
 pub async fn fetch_rpc_methods() -> Result<JsonResult, reqwest::Error> {
-    let param: Vec<usize> = vec![];
-    json_request("rpc_methods", param).await
+    json_request("rpc_methods", ()).await
 }
 
+/// return the block hash of block number `n`
 pub async fn fetch_block_hash(n: usize) -> Result<JsonResult, reqwest::Error> {
     json_request("chain_getBlockHash", vec![n]).await
 }
 
+pub async fn fetch_block(n: usize) -> Result<JsonResult, reqwest::Error> {
+    let result = fetch_block_hash(n).await?;
+    let hash = result.result.as_str().expect("must be a str");
+    fetch_block_with_hash(hash).await
+}
+
+/// return the block detail with hash
 pub async fn fetch_block_with_hash(hash: &str) -> Result<JsonResult, reqwest::Error> {
     json_request("chain_getBlock", vec![hash]).await
 }
@@ -81,13 +98,17 @@ mod tests {
         println!("fetching rpc methods...");
         let result = fetch_rpc_methods().await.expect("must not error");
         dbg!(&result);
-        panic!();
+        //panic!();
     }
 
     #[tokio::test]
     async fn block_hashes() {
+        let version = json_request("state_getRuntimeVersion", ()).await.unwrap();
+        dbg!(&version);
         let result = fetch_block_hash(0).await.expect("must get genesis block");
         dbg!(&result);
+        let block = fetch_block(0).await.expect("must get block");
+        dbg!(&block);
         panic!();
     }
 
@@ -99,6 +120,6 @@ mod tests {
         .await
         .expect("must get block");
         dbg!(&result);
-        panic!();
+        //panic!();
     }
 }

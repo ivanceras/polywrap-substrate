@@ -1,0 +1,17 @@
+[package]
+name = "mycelium_usage"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+mycelium = { path = "../../mycelium" }
+console_error_panic_hook = "0.1"
+log = "0.4"
+console_log = { version = "0.2", features = ["color"] }
+wasm-bindgen = "0.2.80"
+wasm-bindgen-futures = "0.4.30"
+wasm-bindgen-test = "0.3.30"
+web-sys = { version = "0.3.57", features = ["Document","Window","HtmlElement", "Text"] }
