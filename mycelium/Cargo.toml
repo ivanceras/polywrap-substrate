@@ -12,10 +12,12 @@ hex = "0.4.3"
 sp-core = { version = "6.0.0", default-features = false, features = ["full_crypto"], git = "https://github.com/paritytech/substrate.git", branch = "master" }
 codec = { package = "parity-scale-codec", version = "3.0.0", features = ['derive'] }
 frame-metadata = { version = "15.0.0", features = ["v14"], package = "frame-metadata" }
-#frame-support = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate.git", branch = "master" }
 scale-info = { version = "2.0.1", features = ["derive"] }
 thiserror = "1.0.30"
 log = "0.4"
+sp-runtime = { version = "6.0.0", git = "https://github.com/paritytech/substrate.git", branch = "master" }
+# put this here to avoid the getrandom compilation error for wasm32
+getrandom = { version = "0.2", features = ["js"] }
 
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -28,3 +30,6 @@ tokio = { version = "1.18.2", features = ["full"] }
 wasm-bindgen = "0.2.80"
 wasm-bindgen-futures = "0.4.30"
 wasm-bindgen-test = "0.3.30"
+
+[dev-dependencies]
+node-template-runtime = { git = "https://github.com/paritytech/substrate.git", branch = "master" }

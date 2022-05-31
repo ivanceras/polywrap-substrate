@@ -21,7 +21,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use hex::FromHexError;
-use sp_core::H256 as Hash;
+use sp_core::H256;
 
 pub trait FromHexStr {
     fn from_hex(hex: &str) -> Result<Self, hex::FromHexError>
@@ -37,12 +37,12 @@ impl FromHexStr for Vec<u8> {
     }
 }
 
-impl FromHexStr for Hash {
+impl FromHexStr for H256 {
     fn from_hex(hex: &str) -> Result<Self, FromHexError> {
         let vec = Vec::from_hex(hex)?;
 
         match vec.len() {
-            32 => Ok(Hash::from_slice(&vec)),
+            32 => Ok(H256::from_slice(&vec)),
             _ => Err(hex::FromHexError::InvalidStringLength),
         }
     }
@@ -68,15 +68,15 @@ mod tests {
     #[test]
     fn test_hextstr_to_hash() {
         assert_eq!(
-            Hash::from_hex("0x0000000000000000000000000000000000000000000000000000000000000000"),
-            Ok(Hash::from([0u8; 32]))
+            H256::from_hex("0x0000000000000000000000000000000000000000000000000000000000000000"),
+            Ok(H256::from([0u8; 32]))
         );
         assert_eq!(
-            Hash::from_hex("0x010000000000000000"),
+            H256::from_hex("0x010000000000000000"),
             Err(hex::FromHexError::InvalidStringLength)
         );
         assert_eq!(
-            Hash::from_hex("0x0q"),
+            H256::from_hex("0x0q"),
             Err(hex::FromHexError::InvalidHexCharacter { c: 'q', index: 1 })
         );
     }
