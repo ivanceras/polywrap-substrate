@@ -7,7 +7,8 @@ pub fn start() {
     console_error_panic_hook::set_once();
     log::info!("starting...");
     //show_metadata();
-    show_rpc_methods();
+    //show_rpc_methods();
+    show_blocks();
 }
 
 fn show_metadata() {
@@ -33,5 +34,13 @@ fn show_rpc_methods() {
         let text = document.create_text_node(&format!("{:#?}", rpc_methods));
         pre.append_with_node_1(&text).unwrap();
         body.append_with_node_1(&pre).expect("must be appended");
+    });
+}
+
+fn show_blocks() {
+    spawn_local(async {
+        let block: Option<node_template_runtime::Block> =
+            mycelium::fetch_block(0).await.expect("must not error");
+        log::debug!("block: {:#?}", block);
     });
 }
