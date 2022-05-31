@@ -1,44 +1,30 @@
-#![deny(warnings)]
-use async_graphql::{EmptyMutation, EmptySubscription, Object, Schema};
-pub use model::QueryRoot;
+#![allow(warnings)]
+#![allow(clippy::needless_lifetimes)]
+use async_graphql::Context;
+use async_graphql::{EmptyMutation, EmptySubscription, Object, Schema, SimpleObject};
 use node_template_runtime::Block;
-
-mod model;
 
 pub type ChainApiSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
 
+#[derive(SimpleObject)]
 pub struct Header {
     parent_hash: String,
     state_root: String,
     extrinsics_root: String,
 }
 
-#[Object]
-impl Header {
-    async fn parent_hash(&self) -> &str {
-        &self.parent_hash
-    }
-
-    async fn state_root(&self) -> &str {
-        &self.state_root
-    }
-
-    async fn extrinsics_root(&self) -> &str {
-        &self.extrinsics_root
-    }
-}
-
+#[derive(SimpleObject)]
 pub struct BlockDetail {
     number: String,
     header: Header,
 }
 
-pub struct ChainApi {}
+pub struct ChainApi;
 
 impl ChainApi {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        ChainApi {}
+        ChainApi
     }
 
     pub async fn block(&self, number: u32) -> Option<BlockDetail> {
@@ -53,17 +39,35 @@ impl ChainApi {
         })
     }
 
-    //TODO: display the metadata object
-    pub async fn metadata(&self) -> Option<String> {
+    pub async fn metadata(&self) -> Option<mycelium::Metadata> {
         let metadata: mycelium::Metadata =
             mycelium::fetch_metadata().await.expect("must not error");
         dbg!(&metadata);
-        let json = serde_json::to_string(&metadata);
-        dbg!(&json);
-        json.ok()
+        Some(metadata)
     }
 
     pub async fn rpc_methods(&self) -> Option<Vec<String>> {
         mycelium::fetch_rpc_methods().await.ok()
+    }
+}
+
+pub struct QueryRoot;
+
+#[Object]
+impl QueryRoot {
+    async fn block<'a>(
+        &self,
+        ctx: &Context<'a>,
+        #[graphql(desc = "the block number")] number: u32,
+    ) -> Option<BlockDetail> {
+        ctx.data_unchecked::<ChainApi>().block(number).await
+    }
+
+    async fn metadata<'a>(&self, ctx: &Context<'a>) -> Option<mycelium::Metadata> {
+        ctx.data_unchecked::<ChainApi>().metadata().await
+    }
+
+    async fn rpc_methods<'a>(&self, ctx: &Context<'a>) -> Option<Vec<String>> {
+        ctx.data_unchecked::<ChainApi>().rpc_methods().await
     }
 }
