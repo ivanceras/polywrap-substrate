@@ -27,7 +27,6 @@ type QueryRoot {
     # the block number
     number: Int!
   ): BlockDetail
-  metadata: String
-  chainMetadata: Metadata
+  metadata: Metadata
   rpcMethods: [String!]
 }
