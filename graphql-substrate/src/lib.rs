@@ -55,11 +55,16 @@ impl ChainApi {
         })
     }
 
+    //TODO: display the metadata object
     pub async fn metadata(&self) -> Option<String> {
         let metadata = mycelium::fetch_runtime_metadata()
             .await
             .expect("must not error");
         dbg!(&metadata);
         serde_json::to_string(&metadata).ok()
+    }
+
+    pub async fn rpc_methods(&self) -> Option<Vec<String>> {
+        mycelium::fetch_rpc_methods().await.ok()
     }
 }

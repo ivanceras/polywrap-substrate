@@ -37,4 +37,8 @@ impl QueryRoot {
     async fn metadata<'a>(&self, ctx: &Context<'a>) -> Option<String> {
         ctx.data_unchecked::<ChainApi>().metadata().await
     }
+
+    async fn rpc_methods<'a>(&self, ctx: &Context<'a>) -> Option<Vec<String>> {
+        ctx.data_unchecked::<ChainApi>().rpc_methods().await
+    }
 }
