@@ -1,0 +1,10 @@
+[package]
+name = "deployer"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+ipfs-api-backend-hyper = "0.4"
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
