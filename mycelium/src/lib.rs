@@ -3,13 +3,14 @@
 use serde::{Deserialize, Serialize};
 use utils::FromHexStr;
 mod utils;
-use crate::metadata::Metadata;
 use frame_metadata::RuntimeMetadataPrefixed;
 use serde::de::DeserializeOwned;
 use sp_core::Decode;
 use sp_core::H256;
 use sp_runtime::generic::SignedBlock;
 use sp_runtime::traits::Block;
+
+pub use crate::metadata::Metadata;
 
 mod metadata;
 mod storage;
@@ -22,6 +23,10 @@ pub enum Error {
     FromHexError(#[from] hex::FromHexError),
     #[error("error decoding json: {0}")]
     JsonError(#[from] serde_json::Error),
+    #[error("invalid metadata: {0}")]
+    MetadataError(#[from] metadata::InvalidMetadataError),
+    #[error("codec error {0}")]
+    CodecError(#[from] codec::Error),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -43,15 +48,14 @@ pub struct JsonResult {
 pub async fn fetch_runtime_metadata() -> Result<RuntimeMetadataPrefixed, Error> {
     let result = json_request("state_getMetadata", ()).await?;
     let result_str = result.result.as_str().expect("must be a str");
-    let data = Vec::from_hex(result_str).expect("must decode hex");
-    let rt_metadata =
-        RuntimeMetadataPrefixed::decode(&mut data.as_slice()).expect("must not error");
+    let data = Vec::from_hex(result_str)?;
+    let rt_metadata = RuntimeMetadataPrefixed::decode(&mut data.as_slice())?;
     Ok(rt_metadata)
 }
 
 pub async fn fetch_metadata() -> Result<Metadata, Error> {
     let rt_metadata = fetch_runtime_metadata().await?;
-    let metadata = Metadata::try_from(rt_metadata).expect("must convert");
+    let metadata = Metadata::try_from(rt_metadata)?;
     Ok(metadata)
 }
 
@@ -118,7 +122,6 @@ async fn json_request<P: Serialize>(method: &str, params: P) -> Result<JsonResul
         .await?
         .json()
         .await?;
-    dbg!(&result);
 
     Ok(result)
 }
