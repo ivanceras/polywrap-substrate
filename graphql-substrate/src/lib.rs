@@ -2,9 +2,6 @@
 use async_graphql::{EmptyMutation, EmptySubscription, Object, Schema};
 pub use model::QueryRoot;
 use node_template_runtime::Block;
-use sp_core::sr25519;
-use substrate_api_client::rpc::WsRpcClient;
-use substrate_api_client::{Api, PlainTipExtrinsicParams};
 
 mod model;
 
@@ -36,24 +33,16 @@ pub struct BlockDetail {
     header: Header,
 }
 
-pub struct ChainApi {
-    api: Api<sr25519::Pair, WsRpcClient, PlainTipExtrinsicParams>,
-}
+pub struct ChainApi {}
 
 impl ChainApi {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        let client = WsRpcClient::new("ws://127.0.0.1:9944");
-        let api = Api::<sr25519::Pair, _, PlainTipExtrinsicParams>::new(client).unwrap();
-        ChainApi { api }
+        ChainApi {}
     }
 
-    pub fn block(&self, number: u32) -> Option<BlockDetail> {
-        let block = self
-            .api
-            .get_block_by_num::<Block>(Some(number))
-            .ok()
-            .flatten();
+    pub async fn block(&self, number: u32) -> Option<BlockDetail> {
+        let block = mycelium::fetch_block::<Block>(number).await.ok().flatten();
 
         println!("block: \n {:#?} \n", block);
         block.map(|block| BlockDetail {
@@ -66,9 +55,11 @@ impl ChainApi {
         })
     }
 
-    pub fn metadata(&self) -> Option<String> {
-        let metadata = self.api.get_metadata().ok();
+    pub async fn metadata(&self) -> Option<String> {
+        let metadata = mycelium::fetch_runtime_metadata()
+            .await
+            .expect("must not error");
         dbg!(&metadata);
-        metadata.map(|m| serde_json::to_string(&m).expect("must serialize"))
+        serde_json::to_string(&metadata).ok()
     }
 }

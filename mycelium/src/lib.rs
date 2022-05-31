@@ -64,7 +64,7 @@ pub async fn fetch_rpc_methods() -> Result<Vec<String>, Error> {
 }
 
 /// return the block hash of block number `n`
-pub async fn fetch_block_hash(n: usize) -> Result<Option<H256>, Error> {
+pub async fn fetch_block_hash(n: u32) -> Result<Option<H256>, Error> {
     let result = json_request("chain_getBlockHash", vec![n]).await?;
     let hash = result
         .result
@@ -74,7 +74,7 @@ pub async fn fetch_block_hash(n: usize) -> Result<Option<H256>, Error> {
     Ok(hash)
 }
 
-pub async fn fetch_block<B>(n: usize) -> Result<Option<B>, Error>
+pub async fn fetch_block<B>(n: u32) -> Result<Option<B>, Error>
 where
     B: Block + DeserializeOwned,
 {
@@ -82,7 +82,7 @@ where
     Ok(signed_block.map(|sb| sb.block))
 }
 
-pub async fn fetch_signed_block<B>(n: usize) -> Result<Option<SignedBlock<B>>, Error>
+pub async fn fetch_signed_block<B>(n: u32) -> Result<Option<SignedBlock<B>>, Error>
 where
     B: Block + DeserializeOwned,
 {

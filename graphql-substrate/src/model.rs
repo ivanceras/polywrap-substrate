@@ -28,10 +28,13 @@ impl QueryRoot {
         ctx: &Context<'a>,
         #[graphql(desc = "the block number")] number: u32,
     ) -> Option<Block> {
-        ctx.data_unchecked::<ChainApi>().block(number).map(Block)
+        ctx.data_unchecked::<ChainApi>()
+            .block(number)
+            .await
+            .map(Block)
     }
 
     async fn metadata<'a>(&self, ctx: &Context<'a>) -> Option<String> {
-        ctx.data_unchecked::<ChainApi>().metadata()
+        ctx.data_unchecked::<ChainApi>().metadata().await
     }
 }
