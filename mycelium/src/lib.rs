@@ -108,6 +108,7 @@ where
     Ok(block)
 }
 
+//TODO: make the url an argument of the functions
 async fn json_request<P: Serialize>(method: &str, params: P) -> Result<JsonResult, Error> {
     let param = JsonReq {
         id: 1,
