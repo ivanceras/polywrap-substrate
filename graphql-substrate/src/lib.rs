@@ -43,8 +43,6 @@ impl ChainApi {
 
     pub async fn block(&self, number: u32) -> Option<BlockDetail> {
         let block = mycelium::fetch_block::<Block>(number).await.ok().flatten();
-
-        println!("block: \n {:#?} \n", block);
         block.map(|block| BlockDetail {
             number: block.header.number.to_string(),
             header: Header {
@@ -57,11 +55,12 @@ impl ChainApi {
 
     //TODO: display the metadata object
     pub async fn metadata(&self) -> Option<String> {
-        let metadata = mycelium::fetch_runtime_metadata()
-            .await
-            .expect("must not error");
+        let metadata: mycelium::Metadata =
+            mycelium::fetch_metadata().await.expect("must not error");
         dbg!(&metadata);
-        serde_json::to_string(&metadata).ok()
+        let json = serde_json::to_string(&metadata);
+        dbg!(&json);
+        json.ok()
     }
 
     pub async fn rpc_methods(&self) -> Option<Vec<String>> {

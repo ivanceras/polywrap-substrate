@@ -85,7 +85,9 @@ pub enum MetadataError {
 pub struct Metadata {
     metadata: RuntimeMetadataLastVersion,
     pallets: HashMap<String, PalletMetadata>,
+    #[serde(skip)]
     events: HashMap<(u8, u8), EventMetadata>,
+    #[serde(skip)]
     errors: HashMap<(u8, u8), ErrorMetadata>,
 }
 
