@@ -46,7 +46,6 @@ pub async fn fetch_runtime_metadata() -> Result<RuntimeMetadataPrefixed, Error> 
     let data = Vec::from_hex(result_str).expect("must decode hex");
     let rt_metadata =
         RuntimeMetadataPrefixed::decode(&mut data.as_slice()).expect("must not error");
-    dbg!(&rt_metadata);
     Ok(rt_metadata)
 }
 
@@ -59,17 +58,14 @@ pub async fn fetch_metadata() -> Result<Metadata, Error> {
 // curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "rpc_methods"}' http://localhost:9933/
 pub async fn fetch_rpc_methods() -> Result<Vec<String>, Error> {
     let result = json_request("rpc_methods", ()).await?;
-    log::info!("result: {:#?}", result);
     let methods: Vec<String> =
         serde_json::from_value(result.result["methods"].clone()).expect("must deserialize");
-    log::info!("methods: {:#?}", methods);
     Ok(methods)
 }
 
 /// return the block hash of block number `n`
 pub async fn fetch_block_hash(n: usize) -> Result<Option<H256>, Error> {
     let result = json_request("chain_getBlockHash", vec![n]).await?;
-    log::info!("result: {:?}", result);
     let hash = result
         .result
         .as_str()
@@ -92,19 +88,18 @@ where
 {
     let hash = fetch_block_hash(n).await?;
     if let Some(hash) = hash {
-        let block = fetch_signed_block_with_hash(hash).await?;
+        let block = fetch_signed_block_by_hash(hash).await?;
         Ok(block)
     } else {
         Ok(None)
     }
 }
 
-pub async fn fetch_signed_block_with_hash<B>(hash: H256) -> Result<Option<SignedBlock<B>>, Error>
+pub async fn fetch_signed_block_by_hash<B>(hash: H256) -> Result<Option<SignedBlock<B>>, Error>
 where
     B: Block + DeserializeOwned,
 {
     let result = json_request("chain_getBlock", vec![hash]).await?;
-    log::info!("result: {}", result.result);
     let block = serde_json::from_value(result.result.clone())?;
     Ok(block)
 }
@@ -114,7 +109,7 @@ async fn json_request<P: Serialize>(method: &str, params: P) -> Result<JsonResul
         id: 1,
         jsonrpc: "2.0".to_string(),
         method: method.to_string(),
-        params: serde_json::to_value(params).expect("can not convert to json value"),
+        params: serde_json::to_value(params)?,
     };
     let result: JsonResult = reqwest::Client::new()
         .post("http://localhost:9933")
@@ -136,28 +131,32 @@ mod tests {
     #[tokio::test]
     async fn test1() {
         println!("fetching metada...");
-        let result = fetch_metadata().await.expect("must not error");
+        let result = fetch_metadata().await;
         dbg!(&result);
-        panic!();
+        assert!(result.is_ok());
     }
 
     #[tokio::test]
     async fn test2() {
         println!("fetching rpc methods...");
-        let result = fetch_rpc_methods().await.expect("must not error");
+        let result = fetch_rpc_methods().await;
         dbg!(&result);
-        //panic!();
+        assert!(result.is_ok());
     }
 
     #[tokio::test]
     async fn block_hashes() {
-        let version = json_request("state_getRuntimeVersion", ()).await.unwrap();
+        let version = json_request("state_getRuntimeVersion", ()).await;
         dbg!(&version);
-        let result = fetch_block_hash(0).await.expect("must get genesis block");
+        assert!(version.is_ok());
+
+        let result = fetch_block_hash(0).await;
         dbg!(&result);
-        let block: Option<node_template_runtime::Block> =
-            fetch_block(0).await.expect("must get block");
+        assert!(result.is_ok());
+
+        let block: Result<Option<node_template_runtime::Block>, _> = fetch_block(0).await;
         dbg!(&block);
-        panic!();
+        assert!(block.is_ok());
+        assert!(block.unwrap().is_some());
     }
 }
