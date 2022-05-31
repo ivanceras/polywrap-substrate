@@ -1954,6 +1954,7 @@ dependencies = [
 name = "mycelium"
 version = "0.1.0"
 dependencies = [
+ "async-graphql",
  "frame-metadata",
  "getrandom 0.2.6",
  "hex",

@@ -1,5 +1,9 @@
 ## TODO
 - [X] Make a new client for substrate that can be compiled to wasm module
-    - Use parts of the code in substrate-api-client. The substrate-api-client can not be compiled to wasm due to reliance to `std::net` and `tokio` crate.
-    - Make use of `reqwest` which has a corresponding code for `wasm32` targets
+    - [X] Use parts of the code in substrate-api-client. The substrate-api-client can not be compiled to wasm due to reliance to `std::net` and `tokio` crate.
+    - [X] Make use of `reqwest` which has a corresponding code for `wasm32` targets
 - [ ] Make a graphql schema for the rust structs
+- [X] Display the substrate struct conforms to graphql schema
+    - Done with the graphql playground Schema menu
+    - [ ] Maybe also have to write them by hand
+- [ ] Make a graphql Object for Block

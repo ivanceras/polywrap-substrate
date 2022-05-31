@@ -1,0 +1,33 @@
+
+schema {
+  query: QueryRoot
+}
+
+type BlockDetail {
+  number: String!
+  header: Header!
+}
+
+type Header {
+  parentHash: String!
+  stateRoot: String!
+  extrinsicsRoot: String!
+}
+
+# A scalar that can represent any JSON Object value.
+scalar JSONObject
+
+# Runtime metadata.
+type Metadata {
+  pallets: JSONObject!
+}
+
+type QueryRoot {
+  block(
+    # the block number
+    number: Int!
+  ): BlockDetail
+  metadata: String
+  chainMetadata: Metadata
+  rpcMethods: [String!]
+}
