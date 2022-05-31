@@ -81,12 +81,15 @@ pub enum MetadataError {
 }
 
 /// Runtime metadata.
-#[derive(Clone, Debug, Serialize)]
+#[derive(async_graphql::SimpleObject, Clone, Debug, Serialize)]
 pub struct Metadata {
+    #[graphql(skip)]
     metadata: RuntimeMetadataLastVersion,
     pallets: HashMap<String, PalletMetadata>,
+    #[graphql(skip)]
     #[serde(skip)]
     events: HashMap<(u8, u8), EventMetadata>,
+    #[graphql(skip)]
     #[serde(skip)]
     errors: HashMap<(u8, u8), ErrorMetadata>,
 }
@@ -100,7 +103,7 @@ impl Metadata {
     }
 
     /// Returns the metadata for the event at the given pallet and event indices.
-    pub fn event(
+    pub fn get_event(
         &self,
         pallet_index: u8,
         event_index: u8,
@@ -113,7 +116,7 @@ impl Metadata {
     }
 
     /// Returns the metadata for all events of a given pallet
-    pub fn events(&self, pallet_index: u8) -> Vec<EventMetadata> {
+    pub fn get_events(&self, pallet_index: u8) -> Vec<EventMetadata> {
         self.events
             .clone()
             .into_iter()
@@ -123,7 +126,7 @@ impl Metadata {
     }
 
     /// Returns the metadata for the error at the given pallet and error indices.
-    pub fn error(
+    pub fn get_error(
         &self,
         pallet_index: u8,
         error_index: u8,
@@ -136,7 +139,7 @@ impl Metadata {
     }
 
     /// Returns the metadata for all errors of a given pallet
-    pub fn errors(&self, pallet_index: u8) -> Vec<ErrorMetadata> {
+    pub fn get_errors(&self, pallet_index: u8) -> Vec<ErrorMetadata> {
         self.errors
             .clone()
             .into_iter()
@@ -146,21 +149,13 @@ impl Metadata {
     }
 
     /// Resolve a type definition.
-    pub fn resolve_type(&self, id: u32) -> Option<&Type<PortableForm>> {
+    pub fn get_resolve_type(&self, id: u32) -> Option<&Type<PortableForm>> {
         self.metadata.types.resolve(id)
     }
 
     /// Return the runtime metadata.
-    pub fn runtime_metadata(&self) -> &RuntimeMetadataLastVersion {
+    pub fn get_runtime_metadata(&self) -> &RuntimeMetadataLastVersion {
         &self.metadata
-    }
-
-    pub fn pretty_format(metadata: &RuntimeMetadataPrefixed) -> Option<String> {
-        let buf = Vec::new();
-        let formatter = serde_json::ser::PrettyFormatter::with_indent(b" ");
-        let mut ser = serde_json::Serializer::with_formatter(buf, formatter);
-        metadata.serialize(&mut ser).unwrap();
-        String::from_utf8(ser.into_inner()).ok()
     }
 }
 
