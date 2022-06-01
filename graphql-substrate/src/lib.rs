@@ -1,7 +1,8 @@
-#![allow(warnings)]
+#![deny(warnings)]
 #![allow(clippy::needless_lifetimes)]
 use async_graphql::Context;
 use async_graphql::{EmptyMutation, EmptySubscription, Object, Schema, SimpleObject};
+use mycelium::Api;
 use node_template_runtime::Block;
 
 pub type ChainApiSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
@@ -28,7 +29,11 @@ impl ChainApi {
     }
 
     pub async fn block(&self, number: u32) -> Option<BlockDetail> {
-        let block = mycelium::fetch_block::<Block>(number).await.ok().flatten();
+        let block = Api::new("http://localhost:9933")
+            .fetch_block::<Block>(number)
+            .await
+            .ok()
+            .flatten();
         block.map(|block| BlockDetail {
             number: block.header.number.to_string(),
             header: Header {
@@ -40,14 +45,19 @@ impl ChainApi {
     }
 
     pub async fn metadata(&self) -> Option<mycelium::Metadata> {
-        let metadata: mycelium::Metadata =
-            mycelium::fetch_metadata().await.expect("must not error");
+        let metadata = Api::new("http://localhost:9933")
+            .fetch_metadata()
+            .await
+            .expect("must not error");
         dbg!(&metadata);
         Some(metadata)
     }
 
     pub async fn rpc_methods(&self) -> Option<Vec<String>> {
-        mycelium::fetch_rpc_methods().await.ok()
+        Api::new("http://localhost:9933")
+            .fetch_rpc_methods()
+            .await
+            .ok()
     }
 }
 

@@ -1,3 +1,4 @@
+use mycelium::Api;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
 
@@ -13,7 +14,10 @@ pub fn start() {
 
 fn show_metadata() {
     spawn_local(async {
-        let metadata = mycelium::fetch_metadata().await.expect("must not error");
+        let metadata = Api::new("http://localhost:9933")
+            .fetch_metadata()
+            .await
+            .expect("must not error");
         //log::info!("metadata: {:#?}", metadata);
         let document: web_sys::Document = web_sys::window().unwrap().document().unwrap();
         let body = document.body().unwrap();
@@ -26,7 +30,10 @@ fn show_metadata() {
 
 fn show_rpc_methods() {
     spawn_local(async {
-        let rpc_methods = mycelium::fetch_rpc_methods().await.expect("must not error");
+        let rpc_methods = Api::new("http://localhost:9933")
+            .fetch_rpc_methods()
+            .await
+            .expect("must not error");
         log::info!("rpc_methods: {:#?}", rpc_methods);
         let document: web_sys::Document = web_sys::window().unwrap().document().unwrap();
         let body = document.body().unwrap();
@@ -39,8 +46,10 @@ fn show_rpc_methods() {
 
 fn show_blocks() {
     spawn_local(async {
-        let block: Option<node_template_runtime::Block> =
-            mycelium::fetch_block(0).await.expect("must not error");
+        let block: Option<node_template_runtime::Block> = Api::new("http://localhost:9933")
+            .fetch_block(0)
+            .await
+            .expect("must not error");
         log::debug!("block: {:#?}", block);
     });
 }
