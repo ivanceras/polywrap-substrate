@@ -11,3 +11,8 @@
 - [ ] Revisit the skipped fields of substrate structs. Solve the issue for those fields
     - #[graphql(skip)]
     - #[serde(skip)]
+- [ ] Expose some other functionality of substrate
+    - [X] show storage items
+    - [ ] show accounts
+    - [ ] Balance of an account
+    - [ ] Interact with pallets by calling the pallets functionality
