@@ -52,7 +52,7 @@ pub enum MetadataError {
     PalletIndexNotFound(u8),
     /// Call is not in metadata.
     #[error("Call {0} not found")]
-    CallNotFound(&'static str),
+    CallNotFound(String),
     /// Event is not in metadata.
     #[error("Pallet {0}, Event {0} not found")]
     EventNotFound(u8, u8),
@@ -61,7 +61,7 @@ pub enum MetadataError {
     ErrorNotFound(u8, u8),
     /// Storage is not in metadata.
     #[error("Storage {0} not found")]
-    StorageNotFound(&'static str),
+    StorageNotFound(String),
     /// Storage type does not match requested type.
     #[error("Storage type error")]
     StorageTypeError,
@@ -75,7 +75,7 @@ pub enum MetadataError {
     ConstantValueError(CodecError),
     /// Constant is not in metadata.
     #[error("Constant {0} not found")]
-    ConstantNotFound(&'static str),
+    ConstantNotFound(String),
     #[error("Type {0} missing from type registry")]
     TypeNotFound(u32),
 }
@@ -96,7 +96,7 @@ pub struct Metadata {
 
 impl Metadata {
     /// Returns a reference to [`PalletMetadata`].
-    pub fn pallet(&self, name: &'static str) -> Result<&PalletMetadata, MetadataError> {
+    pub fn pallet(&self, name: &str) -> Result<&PalletMetadata, MetadataError> {
         self.pallets
             .get(name)
             .ok_or_else(|| MetadataError::PalletNotFound(name.to_string()))
@@ -169,36 +169,33 @@ pub struct PalletMetadata {
 }
 
 impl PalletMetadata {
-    pub fn encode_call<C>(&self, call_name: &'static str, args: C) -> Result<Encoded, MetadataError>
+    pub fn encode_call<C>(&self, call_name: &str, args: C) -> Result<Encoded, MetadataError>
     where
         C: Encode,
     {
         let fn_index = self
             .calls
             .get(call_name)
-            .ok_or(MetadataError::CallNotFound(call_name))?;
+            .ok_or(MetadataError::CallNotFound(call_name.to_string()))?;
         let mut bytes = vec![self.index, *fn_index];
         bytes.extend(args.encode());
         Ok(Encoded(bytes))
     }
 
-    pub fn storage(
-        &self,
-        key: &'static str,
-    ) -> Result<&StorageEntryMetadata<PortableForm>, MetadataError> {
+    pub fn storage(&self, key: &str) -> Result<&StorageEntryMetadata<PortableForm>, MetadataError> {
         self.storage
             .get(key)
-            .ok_or(MetadataError::StorageNotFound(key))
+            .ok_or(MetadataError::StorageNotFound(key.to_string()))
     }
 
     /// Get a constant's metadata by name
     pub fn constant(
         &self,
-        key: &'static str,
+        key: &str,
     ) -> Result<&PalletConstantMetadata<PortableForm>, MetadataError> {
         self.constants
             .get(key)
-            .ok_or(MetadataError::ConstantNotFound(key))
+            .ok_or(MetadataError::ConstantNotFound(key.to_string()))
     }
 }
 
@@ -390,8 +387,8 @@ impl TryFrom<RuntimeMetadataPrefixed> for Metadata {
 impl Metadata {
     pub fn storage_value_key(
         &self,
-        storage_prefix: &'static str,
-        storage_key_name: &'static str,
+        storage_prefix: &str,
+        storage_key_name: &str,
     ) -> Result<StorageKey, MetadataError> {
         Ok(self
             .pallet(storage_prefix)?
@@ -402,8 +399,8 @@ impl Metadata {
 
     pub fn storage_map_key<K: Encode>(
         &self,
-        storage_prefix: &'static str,
-        storage_key_name: &'static str,
+        storage_prefix: &str,
+        storage_key_name: &str,
         map_key: K,
     ) -> Result<StorageKey, MetadataError> {
         Ok(self
@@ -415,8 +412,8 @@ impl Metadata {
 
     pub fn storage_map_key_prefix(
         &self,
-        storage_prefix: &'static str,
-        storage_key_name: &'static str,
+        storage_prefix: &str,
+        storage_key_name: &str,
     ) -> Result<StorageKey, MetadataError> {
         self.pallet(storage_prefix)?
             .storage(storage_key_name)?
@@ -425,8 +422,8 @@ impl Metadata {
 
     pub fn storage_double_map_key<K: Encode, Q: Encode>(
         &self,
-        storage_prefix: &'static str,
-        storage_key_name: &'static str,
+        storage_prefix: &str,
+        storage_key_name: &str,
         first: K,
         second: Q,
     ) -> Result<StorageKey, MetadataError> {

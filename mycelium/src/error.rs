@@ -9,7 +9,9 @@ pub enum Error {
     #[error("error decoding json: {0}")]
     JsonError(#[from] serde_json::Error),
     #[error("invalid metadata: {0}")]
-    MetadataError(#[from] metadata::InvalidMetadataError),
+    InvalidMetadataError(#[from] metadata::InvalidMetadataError),
+    #[error("metadata error: {0}")]
+    MetadataError(#[from] metadata::MetadataError),
     #[error("codec error {0}")]
     CodecError(#[from] codec::Error),
 }

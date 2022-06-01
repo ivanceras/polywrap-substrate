@@ -1,3 +1,5 @@
+#![allow(warnings)]
+
 use crate::error::Error;
 use crate::metadata::Metadata;
 use crate::utils::FromHexStr;
@@ -8,6 +10,11 @@ use sp_core::Decode;
 use sp_core::H256;
 use sp_runtime::generic::SignedBlock;
 use sp_runtime::traits::Block;
+use std::sync::Arc;
+use std::sync::Mutex;
+use std::sync::MutexGuard;
+
+mod storage_api;
 
 #[derive(Serialize, Deserialize)]
 pub struct JsonReq {
@@ -36,6 +43,7 @@ impl Api {
             url: url.to_string(),
         }
     }
+
     /// Get the runtime metadata of a substrate node.
     /// This is equivalent to running the following command
     ///
@@ -50,6 +58,7 @@ impl Api {
         Ok(rt_metadata)
     }
 
+    /// Get the metadata of the substrate chain
     pub async fn fetch_metadata(&self) -> Result<Metadata, Error> {
         let rt_metadata = self.fetch_runtime_metadata().await?;
         let metadata = Metadata::try_from(rt_metadata)?;
@@ -67,14 +76,19 @@ impl Api {
     /// return the block hash of block number `n`
     pub async fn fetch_block_hash(&self, n: u32) -> Result<Option<H256>, Error> {
         let result = self.json_request("chain_getBlockHash", vec![n]).await?;
-        let hash = result
-            .result
-            .as_str()
-            .map(|s| H256::from_hex(s))
-            .transpose()?;
-        Ok(hash)
+        if result.result.is_null() {
+            Ok(None)
+        } else {
+            let hash = result
+                .result
+                .as_str()
+                .map(|s| H256::from_hex(s))
+                .transpose()?;
+            Ok(hash)
+        }
     }
 
+    /// Fetch a substrate block by number `n`
     pub async fn fetch_block<B>(&self, n: u32) -> Result<Option<B>, Error>
     where
         B: Block + DeserializeOwned,
@@ -83,6 +97,7 @@ impl Api {
         Ok(signed_block.map(|sb| sb.block))
     }
 
+    /// Fetch a substrate signed block by number `n`
     pub async fn fetch_signed_block<B>(&self, n: u32) -> Result<Option<SignedBlock<B>>, Error>
     where
         B: Block + DeserializeOwned,
@@ -96,6 +111,7 @@ impl Api {
         }
     }
 
+    /// Fetch a substrate block by its hash `hash`
     pub async fn fetch_signed_block_by_hash<B>(
         &self,
         hash: H256,
@@ -108,7 +124,11 @@ impl Api {
         Ok(block)
     }
 
-    //TODO: replace this with polywrap's client.query or client.invoke
+    /// Do the actual rpc call into the substrate node using `reqwest` crate.
+    /// Note: reqwest crate can run in a tokio runtime or in webassembly runtime, which is why
+    /// we are able to compile this whole library into wasm.
+    ///
+    /// TODO: replace this with polywrap's `client.query` or `client.invoke`
     async fn json_request<P: Serialize>(
         &self,
         method: &str,
