@@ -10,24 +10,12 @@ use sp_core::H256;
 use sp_runtime::generic::SignedBlock;
 use sp_runtime::traits::Block;
 
-pub use crate::metadata::Metadata;
+pub use error::Error;
+pub use metadata::Metadata;
 
+mod error;
 mod metadata;
 mod storage;
-
-#[derive(thiserror::Error, Debug)]
-pub enum Error {
-    #[error("http error: {0}")]
-    HttpError(#[from] reqwest::Error),
-    #[error("decoding from hex: {0}")]
-    FromHexError(#[from] hex::FromHexError),
-    #[error("error decoding json: {0}")]
-    JsonError(#[from] serde_json::Error),
-    #[error("invalid metadata: {0}")]
-    MetadataError(#[from] metadata::InvalidMetadataError),
-    #[error("codec error {0}")]
-    CodecError(#[from] codec::Error),
-}
 
 #[derive(Serialize, Deserialize)]
 pub struct JsonReq {

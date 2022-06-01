@@ -8,3 +8,6 @@
     - [ ] Maybe also have to write them by hand
 - [ ] Make a graphql Object for Block
 - [ ] Make the rpc endpoint as an argument to the graphql query
+- [ ] Revisit the skipped fields of substrate structs. Solve the issue for those fields
+    - #[graphql(skip)]
+    - #[serde(skip)]

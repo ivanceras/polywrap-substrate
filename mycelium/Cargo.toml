@@ -16,7 +16,7 @@ scale-info = { version = "2.0.1", features = ["derive", "serde"] }
 thiserror = "1.0.30"
 log = "0.4"
 sp-runtime = { version = "6.0.0", git = "https://github.com/paritytech/substrate.git", branch = "master" }
-# put this here to avoid the getrandom compilation error for wasm32
+# put this here to avoid the getrandom compilation error for wasm32 target
 getrandom = { version = "0.2", features = ["js"] }
 async-graphql = { version = "4.0.0" }
 
