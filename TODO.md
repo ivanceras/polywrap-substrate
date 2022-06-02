@@ -11,6 +11,14 @@
 - [ ] Revisit the skipped fields of substrate structs. Solve the issue for those fields
     - #[graphql(skip)]
     - #[serde(skip)]
+    - Convert the existing fields
+     ```rust
+     events: HashMap<(u8, u8), EventMetadata>
+     ```
+     to hashmap of hashmap so, it can be translated into Json or GraphQL objects
+     ```rust
+     events: HashMap<u8, HashMap<u8, EventMetadata>>,
+     ```
 - [ ] Expose some other functionality of substrate
     - [X] show storage items
     - [ ] show accounts
