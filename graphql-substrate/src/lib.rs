@@ -52,6 +52,16 @@ impl ChainApi {
     pub async fn rpc_methods(&self) -> Result<Option<Vec<String>>, mycelium::Error> {
         Api::new("http://localhost:9933").fetch_rpc_methods().await
     }
+
+    pub async fn runtime_version(&self) -> Result<Option<serde_json::Value>, mycelium::Error> {
+        let version = Api::new("http://localhost:9933")
+            .fetch_runtime_version()
+            .await?;
+        match version {
+            Some(version) => Ok(Some(serde_json::to_value(version)?)),
+            None => Ok(None),
+        }
+    }
 }
 
 pub struct QueryRoot;
@@ -78,5 +88,12 @@ impl QueryRoot {
         ctx: &Context<'a>,
     ) -> Result<Option<Vec<String>>, mycelium::Error> {
         ctx.data_unchecked::<ChainApi>().rpc_methods().await
+    }
+
+    async fn runtime_version<'a>(
+        &self,
+        ctx: &Context<'a>,
+    ) -> Result<Option<serde_json::Value>, mycelium::Error> {
+        ctx.data_unchecked::<ChainApi>().runtime_version().await
     }
 }

@@ -10,6 +10,7 @@ use sp_core::Decode;
 use sp_core::H256;
 use sp_runtime::generic::SignedBlock;
 use sp_runtime::traits::Block;
+use sp_version::RuntimeVersion;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::MutexGuard;
@@ -144,12 +145,19 @@ impl Api {
         }
     }
 
-    pub async fn fetch_runtime_version(&self) -> Result<(), Error> {
+    pub async fn fetch_runtime_version(&self) -> Result<Option<RuntimeVersion>, Error> {
         let version = self
             .json_request_value("state_getRuntimeVersion", ())
             .await?;
         println!("version: {:#?}", version);
-        Ok(())
+        match version {
+            Some(version) => {
+                let rt_version: RuntimeVersion = serde_json::from_value(version)?;
+                println!("rt_version: {:#?}", rt_version);
+                Ok(Some(rt_version))
+            }
+            None => Ok(None),
+        }
     }
 
     /// Make a rpc request and return the result.result if it has value

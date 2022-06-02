@@ -1289,8 +1289,6 @@ dependencies = [
  "node-template-runtime",
  "serde_json",
  "slab",
- "sp-core",
- "sp-runtime",
 ]
 
 [[package]]
@@ -1961,6 +1959,7 @@ dependencies = [
  "serde_json",
  "sp-core",
  "sp-runtime",
+ "sp-version",
  "thiserror",
  "tokio",
  "wasm-bindgen",
