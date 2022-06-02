@@ -16,7 +16,7 @@ use std::sync::MutexGuard;
 
 mod storage_api;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq)]
 pub struct JsonReq {
     id: usize,
     jsonrpc: String,
@@ -24,7 +24,7 @@ pub struct JsonReq {
     params: serde_json::Value,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct JsonResult {
     id: usize,
     jsonrpc: String,
@@ -50,41 +50,57 @@ impl Api {
     /// `curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "state_getMetadata"}' http://localhost:9933/`
     ///
     /// Which makes an rpc call of a substrate node running locally.
-    pub async fn fetch_runtime_metadata(&self) -> Result<RuntimeMetadataPrefixed, Error> {
-        let result = self.json_request("state_getMetadata", ()).await?;
-        let result_str = result.result.as_str().expect("must be a str");
-        let data = Vec::from_hex(result_str)?;
-        let rt_metadata = RuntimeMetadataPrefixed::decode(&mut data.as_slice())?;
-        Ok(rt_metadata)
+    pub async fn fetch_runtime_metadata(&self) -> Result<Option<RuntimeMetadataPrefixed>, Error> {
+        let value = self.json_request_value("state_getMetadata", ()).await?;
+        match value {
+            Some(value) => {
+                let value_str = value
+                    .as_str()
+                    .expect("Expecting a string value on the result");
+                let data = Vec::from_hex(value_str)?;
+                let rt_metadata = RuntimeMetadataPrefixed::decode(&mut data.as_slice())?;
+                Ok(Some(rt_metadata))
+            }
+            None => Ok(None),
+        }
     }
 
     /// Get the metadata of the substrate chain
-    pub async fn fetch_metadata(&self) -> Result<Metadata, Error> {
+    pub async fn fetch_metadata(&self) -> Result<Option<Metadata>, Error> {
         let rt_metadata = self.fetch_runtime_metadata().await?;
-        let metadata = Metadata::try_from(rt_metadata)?;
-        Ok(metadata)
+        match rt_metadata {
+            Some(rt_metadata) => {
+                let metadata = Metadata::try_from(rt_metadata)?;
+                Ok(Some(metadata))
+            }
+            None => Ok(None),
+        }
     }
 
     // curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "rpc_methods"}' http://localhost:9933/
     pub async fn fetch_rpc_methods(&self) -> Result<Vec<String>, Error> {
-        let result = self.json_request("rpc_methods", ()).await?;
-        let methods: Vec<String> =
-            serde_json::from_value(result.result["methods"].clone()).expect("must deserialize");
-        Ok(methods)
+        let value = self.json_request_value("rpc_methods", ()).await?;
+        match value {
+            Some(value) => {
+                let methods: Vec<String> = serde_json::from_value(value["methods"].clone())?;
+                Ok(methods)
+            }
+            None => Ok(vec![]),
+        }
     }
 
     /// return the block hash of block number `n`
     pub async fn fetch_block_hash(&self, n: u32) -> Result<Option<H256>, Error> {
-        let result = self.json_request("chain_getBlockHash", vec![n]).await?;
-        if result.result.is_null() {
-            Ok(None)
-        } else {
-            let hash = result
-                .result
-                .as_str()
-                .map(|s| H256::from_hex(s))
-                .transpose()?;
-            Ok(hash)
+        let value = self
+            .json_request_value("chain_getBlockHash", vec![n])
+            .await?;
+
+        match value {
+            Some(value) => {
+                let hash = value.as_str().map(|s| H256::from_hex(s)).transpose()?;
+                Ok(hash)
+            }
+            None => Ok(None),
         }
     }
 
@@ -119,9 +135,35 @@ impl Api {
     where
         B: Block + DeserializeOwned,
     {
-        let result = self.json_request("chain_getBlock", vec![hash]).await?;
-        let block = serde_json::from_value(result.result.clone())?;
-        Ok(block)
+        let value = self
+            .json_request_value("chain_getBlock", vec![hash])
+            .await?;
+        match value {
+            Some(value) => Ok(serde_json::from_value(value)?),
+            None => Ok(None),
+        }
+    }
+
+    pub async fn fetch_runtime_version(&self) -> Result<(), Error> {
+        let version = self
+            .json_request_value("state_getRuntimeVersion", ())
+            .await?;
+        println!("version: {:#?}", version);
+        Ok(())
+    }
+
+    /// Make a rpc request and return the result.result if it has value
+    async fn json_request_value<P: Serialize>(
+        &self,
+        method: &str,
+        params: P,
+    ) -> Result<Option<serde_json::Value>, Error> {
+        let result = self.json_request(method, params).await?;
+        if result.result.is_null() {
+            Ok(None)
+        } else {
+            Ok(Some(result.result))
+        }
     }
 
     /// Do the actual rpc call into the substrate node using `reqwest` crate.
@@ -174,9 +216,18 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn versions() {
+        let version = Api::new("http://localhost:9933")
+            .fetch_runtime_version()
+            .await;
+        dbg!(version);
+        panic!();
+    }
+
+    #[tokio::test]
     async fn block_hashes() {
         let version = Api::new("http://localhost:9933")
-            .json_request("state_getRuntimeVersion", ())
+            .json_request_value("state_getRuntimeVersion", ())
             .await;
         dbg!(&version);
         assert!(version.is_ok());

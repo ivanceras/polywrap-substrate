@@ -17,9 +17,14 @@ impl Api {
     {
         //TODO: store the metadata at the first fetch
         let metadata = self.fetch_metadata().await?;
-        let storage_key = metadata.storage_value_key(module, storage_name)?;
-        println!("storage_key: 0x{}", hex::encode(&storage_key));
-        self.fetch_storage_by_key_hash(storage_key).await
+        match metadata {
+            Some(metadata) => {
+                let storage_key = metadata.storage_value_key(module, storage_name)?;
+                println!("storage_key: 0x{}", hex::encode(&storage_key));
+                self.fetch_storage_by_key_hash(storage_key).await
+            }
+            None => Ok(None),
+        }
     }
 
     pub async fn fetch_storage_by_key_hash<V>(
@@ -39,15 +44,18 @@ impl Api {
         &self,
         storage_key: StorageKey,
     ) -> Result<Option<Vec<u8>>, Error> {
-        let result = self.json_request("state_getStorage", [storage_key]).await?;
-        println!("result: {:#?}", result);
-        if result.result.is_null() {
-            Ok(None)
-        } else {
-            let result_str = result.result.as_str().expect("must be a str");
-            let data = Vec::from_hex(result_str)?;
-            println!("data: {:?}", data);
-            Ok(Some(data))
+        let value = self
+            .json_request_value("state_getStorage", [storage_key])
+            .await?;
+
+        match value {
+            Some(value) => {
+                let value_str = value.as_str().expect("must be a str");
+                let data = Vec::from_hex(value_str)?;
+                println!("data: {:?}", data);
+                Ok(Some(data))
+            }
+            None => Ok(None),
         }
     }
 }
