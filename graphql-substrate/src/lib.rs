@@ -49,7 +49,7 @@ impl ChainApi {
         Api::new("http://localhost:9933").fetch_metadata().await
     }
 
-    pub async fn rpc_methods(&self) -> Result<Vec<String>, mycelium::Error> {
+    pub async fn rpc_methods(&self) -> Result<Option<Vec<String>>, mycelium::Error> {
         Api::new("http://localhost:9933").fetch_rpc_methods().await
     }
 }
@@ -73,7 +73,10 @@ impl QueryRoot {
         ctx.data_unchecked::<ChainApi>().metadata().await
     }
 
-    async fn rpc_methods<'a>(&self, ctx: &Context<'a>) -> Result<Vec<String>, mycelium::Error> {
+    async fn rpc_methods<'a>(
+        &self,
+        ctx: &Context<'a>,
+    ) -> Result<Option<Vec<String>>, mycelium::Error> {
         ctx.data_unchecked::<ChainApi>().rpc_methods().await
     }
 }

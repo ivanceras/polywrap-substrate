@@ -78,14 +78,14 @@ impl Api {
     }
 
     // curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "rpc_methods"}' http://localhost:9933/
-    pub async fn fetch_rpc_methods(&self) -> Result<Vec<String>, Error> {
+    pub async fn fetch_rpc_methods(&self) -> Result<Option<Vec<String>>, Error> {
         let value = self.json_request_value("rpc_methods", ()).await?;
         match value {
             Some(value) => {
                 let methods: Vec<String> = serde_json::from_value(value["methods"].clone())?;
-                Ok(methods)
+                Ok(Some(methods))
             }
-            None => Ok(vec![]),
+            None => Ok(None),
         }
     }
 
