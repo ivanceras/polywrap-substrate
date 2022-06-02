@@ -15,7 +15,7 @@
 //!
 //! This file is **not** from subxt.
 
-use crate::metadata::MetadataError;
+use crate::types::metadata::MetadataError;
 use codec::Encode;
 use frame_metadata::{StorageEntryMetadata, StorageEntryType, StorageHasher};
 use scale_info::form::PortableForm;

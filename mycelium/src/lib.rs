@@ -2,10 +2,9 @@
 
 pub use api::*;
 pub use error::Error;
-pub use metadata::Metadata;
+pub use types::metadata::Metadata;
 
 mod api;
 mod error;
-mod metadata;
-mod storage;
+mod types;
 mod utils;

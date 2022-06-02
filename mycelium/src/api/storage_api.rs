@@ -64,6 +64,7 @@ mod tests {
         println!("result: {:?}", result);
         assert!(result.is_ok());
         let result = result.ok().flatten().unwrap();
+        // only succeed when the substrate node is fresh or unmodified
         assert_eq!(result, 4611686018427387904);
     }
 
@@ -74,7 +75,5 @@ mod tests {
             .await;
         println!("result: {:?}", result);
         assert!(result.is_ok());
-        let result = result.ok().flatten().unwrap();
-        assert_eq!(result, 2);
     }
 }

@@ -1,4 +1,4 @@
-use crate::metadata;
+use crate::types::metadata;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {

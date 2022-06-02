@@ -55,6 +55,12 @@ Interact with the graphql endpoint with this example query to get the block
 }
 ```
 
+## Testing
+Run all the unit tests
+```shell
+cargo test --all
+```
+
 # Links
 - https://github.com/w3f/Grants-Program/blob/master/applications/substrate_core_polywrapper.md
 - https://github.com/polywrap/integrations/tree/substrate-integration

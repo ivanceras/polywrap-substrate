@@ -1,7 +1,7 @@
 #![allow(warnings)]
 
 use crate::error::Error;
-use crate::metadata::Metadata;
+use crate::types::metadata::Metadata;
 use crate::utils::FromHexStr;
 use frame_metadata::RuntimeMetadataPrefixed;
 use serde::de::DeserializeOwned;
