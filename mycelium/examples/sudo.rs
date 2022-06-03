@@ -1,4 +1,4 @@
-#![deny(warnings)]
+#![allow(warnings)]
 use mycelium::{
     types::{
         extrinsic_params::{
@@ -31,9 +31,12 @@ async fn main() -> Result<(), mycelium::Error> {
         .get("set_balance")
         .expect("function name does not exist");
 
+    //u128::MAX = 340_282_366_920_938_463_463_374_607_431_768_211_455u128
+    // 1Yunit = 1_000_000_000_000_000_000_000_000_000_000_000_000_u128
+    // 1Munit = 1_000_000_000_000_000_000_u128
     let balance_call = ([balance_pallet.index, *set_balance_call_index as u8], GenericAddress::Id(to),
-        Compact(u128::MAX),
-        Compact(u128::MAX),
+        Compact(42_000_000_000_000_000_000_u128),
+        Compact(42_000_000_000_000_000_000_u128),
         );
 
 
