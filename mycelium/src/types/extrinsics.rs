@@ -25,9 +25,11 @@ use crate::types::extrinsic_params::{
     BaseExtrinsicParams, ExtrinsicParams, GenericExtra, PlainTipExtrinsicParamsBuilder,
     SignedPayload,
 };
+use crate::Api;
 use crate::Metadata;
 use codec::{Decode, Encode, Error, Input};
 use sp_core::crypto::Pair;
+use sp_core::storage::StorageKey;
 use sp_core::H256;
 use sp_runtime::traits::IdentifyAccount;
 pub use sp_runtime::{AccountId32 as AccountId, MultiAddress};
@@ -164,62 +166,6 @@ fn encode_with_vec_prefix<T: Encode, F: Fn(&mut Vec<u8>)>(encoder: F) -> Vec<u8>
     v
 }
 
-fn compose_extrinsics<P, Params, Tip>()
-where
-    P: Pair,
-    Params: ExtrinsicParams<OtherParams = BaseExtrinsicParamsBuilder<Tip>>,
-    MultiSigner: From<P::Public>,
-    MultiSignature: From<P::Signature>,
-    u128: From<Tip>,
-    Tip: Encode + Default,
-{
-    let runtime_version: RuntimeVersion = todo!();
-    let genesis_hash: H256 = todo!();
-    let metadata: Metadata = todo!();
-    let signer: Option<P> = todo!();
-    let nonce: u32 = todo!();
-    let extrinsic_params: Option<Params::OtherParams> = todo!();
-
-    let pallet = metadata.pallet("TemplateModule").unwrap();
-    let call_index = pallet.calls.get("do_something").unwrap();
-    let call = ([pallet.index, *call_index as u8], (2));
-
-    if let Some(signer) = signer {
-        let other_params = extrinsic_params.unwrap_or_default();
-        let params: BaseExtrinsicParams<Tip> = BaseExtrinsicParams::new(nonce, other_params);
-        let extra = GenericExtra::from(params);
-        let raw_payload = SignedPayload::from_raw(
-            call,
-            extra,
-            (
-                runtime_version.spec_version,
-                runtime_version.transaction_version,
-                genesis_hash,
-                genesis_hash,
-                (),
-                (),
-                (),
-            ),
-        );
-        let signature: P::Signature = raw_payload.using_encoded(|payload| signer.sign(payload));
-        let multi_signer: MultiSigner = signer.public().into();
-        let multi_signature: MultiSignature = signature.into();
-        let xt: UncheckedExtrinsicV4<_> = UncheckedExtrinsicV4::new_signed(
-            call,
-            GenericAddress::from(multi_signer.into_account()),
-            multi_signature,
-            extra,
-        );
-        println!("a signed xt: {:#?}", xt);
-    } else {
-        let xt: UncheckedExtrinsicV4<_> = UncheckedExtrinsicV4 {
-            signature: None,
-            function: call,
-        };
-        println!("xt: {:#?}", xt);
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -233,11 +179,6 @@ mod tests {
     use sp_runtime::generic::Era;
     use sp_runtime::testing::sr25519;
     use sp_runtime::MultiSignature;
-
-    #[test]
-    fn try_compose_extrinsics() {
-        compose_extrinsics::<sp_core::sr25519::Pair, PlainTipExtrinsicParams, PlainTip>();
-    }
 
     #[test]
     fn encode_decode_roundtrip_works() {

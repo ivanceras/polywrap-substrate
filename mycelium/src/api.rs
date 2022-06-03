@@ -114,7 +114,7 @@ impl Api {
         Ok(signed_block.map(|sb| sb.block))
     }
 
-    pub async fn fetch_genesis_hash<B>(&self) -> Result<Option<H256>, Error> {
+    pub async fn fetch_genesis_hash(&self) -> Result<Option<H256>, Error> {
         self.fetch_block_hash(0).await
     }
 

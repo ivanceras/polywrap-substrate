@@ -9,5 +9,5 @@ pub use sp_version;
 
 mod api;
 mod error;
-mod types;
+pub mod types;
 mod utils;
