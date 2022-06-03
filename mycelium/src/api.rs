@@ -114,6 +114,10 @@ impl Api {
         Ok(signed_block.map(|sb| sb.block))
     }
 
+    pub async fn fetch_genesis_hash<B>(&self) -> Result<Option<H256>, Error> {
+        self.fetch_block_hash(0).await
+    }
+
     /// Fetch a substrate signed block by number `n`
     pub async fn fetch_signed_block<B>(&self, n: u32) -> Result<Option<SignedBlock<B>>, Error>
     where
