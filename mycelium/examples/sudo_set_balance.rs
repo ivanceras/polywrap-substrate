@@ -1,23 +1,21 @@
 #![allow(warnings)]
+use codec::Compact;
 use mycelium::{
     types::{
         extrinsic_params::{
             PlainTip,
             PlainTipExtrinsicParams,
         },
+        extrinsics::GenericAddress,
     },
     Api,
     Metadata,
 };
 use sp_keyring::AccountKeyring;
-use mycelium::types::extrinsics::GenericAddress;
-use codec::Compact;
 
 #[tokio::main]
 async fn main() -> Result<(), mycelium::Error> {
-    let sudoer: sp_core::sr25519::Pair =
-        AccountKeyring::Alice.pair();
-
+    let sudoer: sp_core::sr25519::Pair = AccountKeyring::Alice.pair();
 
     let to = AccountKeyring::Bob.to_account_id();
 
@@ -34,11 +32,12 @@ async fn main() -> Result<(), mycelium::Error> {
     //u128::MAX = 340_282_366_920_938_463_463_374_607_431_768_211_455u128
     // 1Yunit = 1_000_000_000_000_000_000_000_000_000_000_000_000_u128
     // 1Munit = 1_000_000_000_000_000_000_u128
-    let balance_call = ([balance_pallet.index, *set_balance_call_index], GenericAddress::Id(to),
+    let balance_call = (
+        [balance_pallet.index, *set_balance_call_index],
+        GenericAddress::Id(to),
         Compact(42_000_000_000_000_000_000_u128),
         Compact(42_000_000_000_000_000_000_u128),
-        );
-
+    );
 
     let sudo_pallet = metadata.pallet("Sudo")?;
     let sudo_call_index = sudo_pallet
@@ -61,4 +60,3 @@ async fn main() -> Result<(), mycelium::Error> {
     println!("result: {:?}", result);
     Ok(())
 }
-

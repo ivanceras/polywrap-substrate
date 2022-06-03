@@ -1,10 +1,8 @@
 #![deny(warnings)]
 use mycelium::{
-    types::{
-        extrinsic_params::{
-            PlainTip,
-            PlainTipExtrinsicParams,
-        },
+    types::extrinsic_params::{
+        PlainTip,
+        PlainTipExtrinsicParams,
     },
     Api,
     Metadata,
@@ -13,8 +11,7 @@ use sp_keyring::AccountKeyring;
 
 #[tokio::main]
 async fn main() -> Result<(), mycelium::Error> {
-    let signer: sp_core::sr25519::Pair =
-        AccountKeyring::Alice.pair();
+    let signer: sp_core::sr25519::Pair = AccountKeyring::Alice.pair();
     let api = Api::new("http://localhost:9933");
     let metadata: Metadata =
         api.fetch_metadata().await?.expect("cant get a metadata");
@@ -39,5 +36,3 @@ async fn main() -> Result<(), mycelium::Error> {
     println!("result: {:?}", result);
     Ok(())
 }
-
-
