@@ -203,18 +203,23 @@ impl Api {
             params: serde_json::to_value(params)?,
         };
         println!("param: {:#?}", param);
-        let result_value: serde_json::Value = reqwest::Client::new()
+        let response: serde_json::Value = reqwest::Client::new()
             .post(&self.url)
             .json(&param)
             .send()
             .await?
             .json()
             .await?;
-        println!("http result_value: {:#?}", result_value);
-        let result: JsonResult = serde_json::from_value(result_value)?;
-        println!("http result: {:#?}", result);
 
-        Ok(result)
+        println!("http response: {:#?}", response);
+        match response.get("error") {
+            Some(error) => Err(Error::ResponseJsonError(error.clone())),
+            None => {
+                let result: JsonResult = serde_json::from_value(response)?;
+                println!("http result: {:#?}", result);
+                Ok(result)
+            }
+        }
     }
 }
 

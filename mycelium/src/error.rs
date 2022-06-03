@@ -14,4 +14,6 @@ pub enum Error {
     MetadataError(#[from] metadata::MetadataError),
     #[error("Codec error: {0}")]
     CodecError(#[from] codec::Error),
+    #[error("Error response: {0}")]
+    ResponseJsonError(serde_json::Value),
 }

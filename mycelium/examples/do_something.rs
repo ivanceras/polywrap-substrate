@@ -30,6 +30,7 @@ async fn main() -> Result<(), mycelium::Error> {
 
 async fn execute_extrinsics() -> Result<(), mycelium::Error> {
     let signer: Option<sp_core::sr25519::Pair> = Some(AccountKeyring::Alice.pair());
+    //let signer: Option<sp_core::sr25519::Pair> = None;
     let xt =
         compose_extrinsics::<sp_core::sr25519::Pair, PlainTipExtrinsicParams, PlainTip>(signer)
             .await?;
@@ -61,24 +62,27 @@ where
         .expect("cant get a genesis hash");
     let metadata: Metadata = api.fetch_metadata().await?.expect("cant get a metadata");
 
-    let multi_signer = MultiSigner::from(signer.clone().unwrap().public());
-    let account_id: AccountId = multi_signer.into_account();
-    let storage_key: StorageKey = metadata
-        .storage_map_key::<AccountId>("System", "Account", account_id)
-        .unwrap();
-    let account_info: AccountInfo = api.fetch_storage_by_key_hash(storage_key).await?.unwrap();
-    let nonce: u32 = account_info.nonce;
-    println!("nonce: {}", nonce);
-
     let extrinsic_params: Option<Params::OtherParams> = None;
 
-    let pallet = metadata.pallet("TemplateModule").unwrap();
-    let call_index = pallet.calls.get("do_something").unwrap();
+    let pallet = metadata.pallet("TemplateModule")?;
+    let call_index = pallet
+        .calls
+        .get("do_something")
+        .expect("function name does not exist");
     let call = ([pallet.index, *call_index as u8], (200u32));
 
     println!("call: {:?}", call);
 
     let xt: UncheckedExtrinsicV4<([u8; 2], u32)> = if let Some(signer) = signer.as_ref() {
+        let multi_signer = MultiSigner::from(signer.public());
+        let account_id: AccountId = multi_signer.into_account();
+        let storage_key: StorageKey = metadata
+            .storage_map_key::<AccountId>("System", "Account", account_id)
+            .unwrap();
+        let account_info: AccountInfo = api.fetch_storage_by_key_hash(storage_key).await?.unwrap();
+        let nonce: u32 = account_info.nonce;
+        println!("nonce: {}", nonce);
+
         println!("got a signer..");
         let other_params = extrinsic_params.unwrap_or_default();
         let params: BaseExtrinsicParams<Tip> = BaseExtrinsicParams::new(nonce, other_params);
