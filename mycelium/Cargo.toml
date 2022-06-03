@@ -20,6 +20,7 @@ sp-version = { version = "5.0.0-dev", git = "https://github.com/paritytech/subst
 # put this here to avoid the getrandom compilation error for wasm32 target
 getrandom = { version = "0.2", features = ["js"] }
 async-graphql = { version = "4.0.0" }
+sp-std = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "master" }
 
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

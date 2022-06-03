@@ -1959,6 +1959,7 @@ dependencies = [
  "serde_json",
  "sp-core",
  "sp-runtime",
+ "sp-std",
  "sp-version",
  "thiserror",
  "tokio",
