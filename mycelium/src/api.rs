@@ -17,7 +17,7 @@ use std::sync::MutexGuard;
 
 mod storage_api;
 
-#[derive(Serialize, Deserialize, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct JsonReq {
     id: usize,
     jsonrpc: String,
@@ -164,6 +164,14 @@ impl Api {
         }
     }
 
+    pub async fn author_submit_and_watch_extrinsic(
+        &self,
+        hex_extrinsic: &str,
+    ) -> Result<Option<serde_json::Value>, Error> {
+        self.json_request_value("author_submitExtrinsic", vec![hex_extrinsic])
+            .await
+    }
+
     /// Make a rpc request and return the result.result if it has value
     async fn json_request_value<P: Serialize>(
         &self,
@@ -194,13 +202,17 @@ impl Api {
             method: method.to_string(),
             params: serde_json::to_value(params)?,
         };
-        let result: JsonResult = reqwest::Client::new()
+        println!("param: {:#?}", param);
+        let result_value: serde_json::Value = reqwest::Client::new()
             .post(&self.url)
             .json(&param)
             .send()
             .await?
             .json()
             .await?;
+        println!("http result_value: {:#?}", result_value);
+        let result: JsonResult = serde_json::from_value(result_value)?;
+        println!("http result: {:#?}", result);
 
         Ok(result)
     }

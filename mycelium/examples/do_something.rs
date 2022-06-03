@@ -1,9 +1,3 @@
-/*
-#[tokio::test]
-fn try_compose_extrinsics() {
-    compose_extrinsics::<sp_core::sr25519::Pair, PlainTipExtrinsicParams, PlainTip>().await;
-}
-*/
 use codec::{Decode, Encode};
 use mycelium::types::account_info::AccountInfo;
 use mycelium::types::extrinsic_params::BaseExtrinsicParams;
@@ -36,13 +30,17 @@ async fn main() -> Result<(), mycelium::Error> {
 
 async fn execute_extrinsics() -> Result<(), mycelium::Error> {
     let signer: Option<sp_core::sr25519::Pair> = Some(AccountKeyring::Alice.pair());
-    compose_extrinsics::<sp_core::sr25519::Pair, PlainTipExtrinsicParams, PlainTip>(signer).await?;
+    let xt =
+        compose_extrinsics::<sp_core::sr25519::Pair, PlainTipExtrinsicParams, PlainTip>(signer)
+            .await?;
+    let encoded = xt.hex_encode();
+    println!("encoded: {}", encoded);
     Ok(())
 }
 
 pub async fn compose_extrinsics<P, Params, Tip>(
     signer: Option<P>,
-) -> Result<UncheckedExtrinsicV4<([u8; 2], u8)>, mycelium::Error>
+) -> Result<UncheckedExtrinsicV4<([u8; 2], u32)>, mycelium::Error>
 where
     P: Pair,
     Params: ExtrinsicParams<OtherParams = BaseExtrinsicParamsBuilder<Tip>>,
@@ -70,20 +68,22 @@ where
         .unwrap();
     let account_info: AccountInfo = api.fetch_storage_by_key_hash(storage_key).await?.unwrap();
     let nonce: u32 = account_info.nonce;
+    println!("nonce: {}", nonce);
 
     let extrinsic_params: Option<Params::OtherParams> = None;
 
     let pallet = metadata.pallet("TemplateModule").unwrap();
     let call_index = pallet.calls.get("do_something").unwrap();
-    let call = ([pallet.index, *call_index as u8], (2u8));
+    let call = ([pallet.index, *call_index as u8], (200u32));
 
     println!("call: {:?}", call);
 
-    let xt: UncheckedExtrinsicV4<([u8; 2], u8)> = if let Some(signer) = signer.as_ref() {
+    let xt: UncheckedExtrinsicV4<([u8; 2], u32)> = if let Some(signer) = signer.as_ref() {
         println!("got a signer..");
         let other_params = extrinsic_params.unwrap_or_default();
         let params: BaseExtrinsicParams<Tip> = BaseExtrinsicParams::new(nonce, other_params);
         let extra = GenericExtra::from(params);
+        println!("extra: {:?}", extra);
         let raw_payload = SignedPayload::from_raw(
             call,
             extra.clone(),
@@ -114,5 +114,8 @@ where
     };
 
     println!("xt: {:#?}", xt);
+    let encoded = xt.hex_encode();
+    let result = api.author_submit_and_watch_extrinsic(&encoded).await?;
+    println!("result: {:?}", result);
     Ok(xt)
 }
