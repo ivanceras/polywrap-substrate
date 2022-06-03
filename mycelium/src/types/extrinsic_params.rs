@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use codec::{Compact, Decode, Encode};
 use sp_core::{blake2_256, H256};
 use sp_runtime::generic::Era;

@@ -1,4 +1,3 @@
-#![allow(unused)]
 /*
    Copyright 2019 Supercomputing Systems AG
 
@@ -18,29 +17,16 @@
 
 //! Primitives for substrate extrinsics.
 
-extern crate alloc;
-
-use crate::types::extrinsic_params::BaseExtrinsicParamsBuilder;
-use crate::types::extrinsic_params::{
-    BaseExtrinsicParams, ExtrinsicParams, GenericExtra, PlainTipExtrinsicParamsBuilder,
-    SignedPayload,
-};
-use crate::Api;
-use crate::Metadata;
+use crate::types::extrinsic_params::GenericExtra;
 use codec::{Decode, Encode, Error, Input};
-use sp_core::crypto::Pair;
-use sp_core::storage::StorageKey;
-use sp_core::H256;
-use sp_runtime::traits::IdentifyAccount;
-pub use sp_runtime::{AccountId32 as AccountId, MultiAddress};
-use sp_runtime::{MultiSignature, MultiSigner};
+use sp_runtime::MultiSignature;
+pub use sp_runtime::{AccountId32, MultiAddress};
 use sp_std::fmt;
 use sp_std::prelude::*;
-use sp_version::RuntimeVersion;
 
 pub type AccountIndex = u64;
 
-pub type GenericAddress = sp_runtime::MultiAddress<AccountId, ()>;
+pub type GenericAddress = sp_runtime::MultiAddress<AccountId32, ()>;
 
 pub type CallIndex = [u8; 2];
 
@@ -68,7 +54,7 @@ where
         }
     }
 
-    pub fn hex_encode(&self) -> alloc::string::String {
+    pub fn hex_encode(&self) -> String {
         let mut hex_str = hex::encode(self.encode());
         hex_str.insert_str(0, "0x");
         hex_str
@@ -186,7 +172,7 @@ mod tests {
         let (pair, _) = sr25519::Pair::generate();
         let signature = pair.sign(&msg);
         let multi_sig = MultiSignature::from(signature);
-        let account: AccountId = pair.public().into();
+        let account: AccountId32 = pair.public().into();
         let tx_params =
             PlainTipExtrinsicParamsBuilder::new().era(Era::mortal(8, 0), Hash::from([0u8; 32]));
 

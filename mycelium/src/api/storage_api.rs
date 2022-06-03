@@ -1,4 +1,3 @@
-#![allow(warnings)]
 use crate::api::Api;
 use crate::utils::FromHexStr;
 use crate::Error;

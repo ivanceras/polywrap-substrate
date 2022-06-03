@@ -10,7 +10,7 @@ use mycelium::types::extrinsic_params::SignedPayload;
 use mycelium::types::extrinsics::GenericAddress;
 use mycelium::types::extrinsics::UncheckedExtrinsicV4;
 use mycelium::{Api, Metadata};
-use node_template_runtime::AccountId;
+//use node_template_runtime::AccountId32;
 use sp_core::storage::StorageKey;
 use sp_core::Pair;
 use sp_core::H256;
@@ -18,6 +18,7 @@ use sp_keyring::AccountKeyring;
 use sp_runtime::generic::Era;
 use sp_runtime::testing::sr25519;
 use sp_runtime::traits::IdentifyAccount;
+use sp_runtime::AccountId32;
 use sp_runtime::MultiSignature;
 use sp_runtime::MultiSigner;
 use sp_version::RuntimeVersion;
@@ -30,18 +31,36 @@ async fn main() -> Result<(), mycelium::Error> {
 
 async fn execute_extrinsics() -> Result<(), mycelium::Error> {
     let signer: Option<sp_core::sr25519::Pair> = Some(AccountKeyring::Alice.pair());
-    //let signer: Option<sp_core::sr25519::Pair> = None;
-    let xt =
-        compose_extrinsics::<sp_core::sr25519::Pair, PlainTipExtrinsicParams, PlainTip>(signer)
-            .await?;
+    let api = Api::new("http://localhost:9933");
+    let metadata: Metadata = api.fetch_metadata().await?.expect("cant get a metadata");
+    let pallet = metadata.pallet("TemplateModule")?;
+    let call_index = pallet
+        .calls
+        .get("do_something")
+        .expect("function name does not exist");
+    let call = ([pallet.index, *call_index as u8], (200u32));
+
+    let xt = compose_extrinsics::<
+        sp_core::sr25519::Pair,
+        PlainTipExtrinsicParams,
+        PlainTip,
+        ([u8; 2], u32),
+    >(&api, signer, call, None)
+    .await?;
+
     let encoded = xt.hex_encode();
     println!("encoded: {}", encoded);
+    let result = api.author_submit_and_watch_extrinsic(&encoded).await?;
+    println!("result: {:?}", result);
     Ok(())
 }
 
-pub async fn compose_extrinsics<P, Params, Tip>(
+pub async fn compose_extrinsics<P, Params, Tip, Call>(
+    api: &Api,
     signer: Option<P>,
-) -> Result<UncheckedExtrinsicV4<([u8; 2], u32)>, mycelium::Error>
+    call: Call,
+    extrinsic_params: Option<Params::OtherParams>,
+) -> Result<UncheckedExtrinsicV4<Call>, mycelium::Error>
 where
     P: Pair,
     Params: ExtrinsicParams<OtherParams = BaseExtrinsicParamsBuilder<Tip>>,
@@ -49,9 +68,9 @@ where
     MultiSignature: From<P::Signature>,
     u128: From<Tip>,
     Tip: Encode + Default,
+    Call: Encode + Clone,
 {
     println!("composing extrinisics..");
-    let api = Api::new("http://localhost:9933");
     let runtime_version: RuntimeVersion = api
         .fetch_runtime_version()
         .await?
@@ -60,25 +79,21 @@ where
         .fetch_genesis_hash()
         .await?
         .expect("cant get a genesis hash");
+
+    let head_hash: H256 = api
+        .chain_get_finalized_head()
+        .await?
+        .expect("must have a finalized head");
+    println!("head hash: {:?}", head_hash);
+
     let metadata: Metadata = api.fetch_metadata().await?.expect("cant get a metadata");
 
-    let extrinsic_params: Option<Params::OtherParams> = None;
-
-    let pallet = metadata.pallet("TemplateModule")?;
-    let call_index = pallet
-        .calls
-        .get("do_something")
-        .expect("function name does not exist");
-    let call = ([pallet.index, *call_index as u8], (200u32));
-
-    println!("call: {:?}", call);
-
-    let xt: UncheckedExtrinsicV4<([u8; 2], u32)> = if let Some(signer) = signer.as_ref() {
+    let xt: UncheckedExtrinsicV4<Call> = if let Some(signer) = signer.as_ref() {
         let multi_signer = MultiSigner::from(signer.public());
-        let account_id: AccountId = multi_signer.into_account();
+        let account_id: AccountId32 = multi_signer.into_account();
         let storage_key: StorageKey = metadata
-            .storage_map_key::<AccountId>("System", "Account", account_id)
-            .unwrap();
+            .storage_map_key::<AccountId32>("System", "Account", account_id)
+            .expect("must have a System Account storage key");
         let account_info: AccountInfo = api.fetch_storage_by_key_hash(storage_key).await?.unwrap();
         let nonce: u32 = account_info.nonce;
         println!("nonce: {}", nonce);
@@ -89,7 +104,7 @@ where
         let extra = GenericExtra::from(params);
         println!("extra: {:?}", extra);
         let raw_payload = SignedPayload::from_raw(
-            call,
+            call.clone(),
             extra.clone(),
             (
                 runtime_version.spec_version,
@@ -117,9 +132,7 @@ where
         }
     };
 
-    println!("xt: {:#?}", xt);
+    //println!("xt: {:#?}", xt);
     let encoded = xt.hex_encode();
-    let result = api.author_submit_and_watch_extrinsic(&encoded).await?;
-    println!("result: {:?}", result);
     Ok(xt)
 }

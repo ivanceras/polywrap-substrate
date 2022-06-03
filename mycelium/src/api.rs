@@ -1,5 +1,3 @@
-#![allow(warnings)]
-
 use crate::error::Error;
 use crate::types::metadata::Metadata;
 use crate::utils::FromHexStr;
@@ -11,10 +9,8 @@ use sp_core::H256;
 use sp_runtime::generic::SignedBlock;
 use sp_runtime::traits::Block;
 use sp_version::RuntimeVersion;
-use std::sync::Arc;
-use std::sync::Mutex;
-use std::sync::MutexGuard;
 
+mod extrinsic_api;
 mod storage_api;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -132,6 +128,19 @@ impl Api {
         }
     }
 
+    pub async fn chain_get_finalized_head(&self) -> Result<Option<H256>, Error> {
+        let value = self
+            .json_request_value("chain_getFinalizedHead", ())
+            .await?;
+        match value {
+            Some(value) => {
+                let value_str = value.as_str().expect("Expecting a string");
+                Ok(Some(H256::from_hex(value_str)?))
+            }
+            None => Ok(None),
+        }
+    }
+
     /// Fetch a substrate block by its hash `hash`
     pub async fn fetch_signed_block_by_hash<B>(
         &self,
@@ -211,12 +220,13 @@ impl Api {
             .json()
             .await?;
 
-        println!("http response: {:#?}", response);
         match response.get("error") {
-            Some(error) => Err(Error::ResponseJsonError(error.clone())),
+            Some(error) => {
+                println!("response error: {:#?}", error);
+                Err(Error::ResponseJsonError(error.clone()))
+            }
             None => {
                 let result: JsonResult = serde_json::from_value(response)?;
-                println!("http result: {:#?}", result);
                 Ok(result)
             }
         }
