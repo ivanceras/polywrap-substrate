@@ -287,8 +287,8 @@ mod tests {
         let version = Api::new("http://localhost:9933")
             .fetch_runtime_version()
             .await;
-        dbg!(version);
-        panic!();
+        dbg!(&version);
+        assert!(version.is_ok());
     }
 
     #[tokio::test]

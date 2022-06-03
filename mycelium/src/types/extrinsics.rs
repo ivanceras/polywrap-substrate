@@ -171,8 +171,6 @@ mod tests {
     use crate::types::extrinsic_params::{
         BaseExtrinsicParams,
         ExtrinsicParams,
-        PlainTip,
-        PlainTipExtrinsicParams,
         PlainTipExtrinsicParamsBuilder,
     };
     use sp_core::{
