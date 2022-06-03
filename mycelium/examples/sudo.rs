@@ -10,27 +10,46 @@ use mycelium::{
     Metadata,
 };
 use sp_keyring::AccountKeyring;
+use mycelium::types::extrinsics::GenericAddress;
+use codec::Compact;
 
 #[tokio::main]
 async fn main() -> Result<(), mycelium::Error> {
-    let signer: sp_core::sr25519::Pair =
+    let sudoer: sp_core::sr25519::Pair =
         AccountKeyring::Alice.pair();
+
+
+    let to = AccountKeyring::Bob.to_account_id();
+
     let api = Api::new("http://localhost:9933");
     let metadata: Metadata =
         api.fetch_metadata().await?.expect("cant get a metadata");
-    let pallet = metadata.pallet("TemplateModule")?;
-    let call_index = pallet
+
+    let balance_pallet = metadata.pallet("Balances")?;
+    let set_balance_call_index = balance_pallet
         .calls
-        .get("do_something")
+        .get("set_balance")
         .expect("function name does not exist");
-    let call = ([pallet.index, *call_index as u8], (200u32));
+
+    let balance_call = ([balance_pallet.index, *set_balance_call_index as u8], GenericAddress::Id(to),
+        Compact(u128::MAX),
+        Compact(u128::MAX),
+        );
+
+
+    let sudo_pallet = metadata.pallet("Sudo")?;
+    let sudo_call_index = sudo_pallet
+        .calls
+        .get("sudo")
+        .expect("function name does not exist");
+    let sudo_call = ([sudo_pallet.index, *sudo_call_index as u8], balance_call);
 
     let xt = api.compose_extrinsics::<
         sp_core::sr25519::Pair,
         PlainTipExtrinsicParams,
         PlainTip,
-        ([u8; 2], u32),
-    >(Some(signer), call, None)
+        ([u8;2],([u8; 2], GenericAddress, Compact<u128>, Compact<u128>)),
+    >(Some(sudoer), sudo_call, None)
     .await?;
 
     let encoded = xt.hex_encode();
@@ -39,5 +58,4 @@ async fn main() -> Result<(), mycelium::Error> {
     println!("result: {:?}", result);
     Ok(())
 }
-
 

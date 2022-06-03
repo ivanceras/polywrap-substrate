@@ -200,7 +200,7 @@ impl Api {
         }
     }
 
-    pub async fn author_submit_and_watch_extrinsic(
+    pub async fn author_submit_extrinsic(
         &self,
         hex_extrinsic: &str,
     ) -> Result<Option<serde_json::Value>, Error> {
