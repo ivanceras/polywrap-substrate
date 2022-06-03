@@ -20,7 +20,10 @@
      events: HashMap<u8, HashMap<u8, EventMetadata>>,
      ```
 - [ ] Expose some other functionality of substrate
-    - [X] show storage items
+    - [x] show storage items
+        - [x] show storage value
+        - [ ] show storage maps
+        - [ ] show storage double maps
     - [ ] show accounts
     - [ ] Balance of an account
-    - [ ] Interact with pallets by calling the pallets functionality
+    - [X] Interact with pallets by calling the pallets functionality
