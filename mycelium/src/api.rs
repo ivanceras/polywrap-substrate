@@ -113,7 +113,7 @@ impl Api {
         match value {
             Some(value) => {
                 let hash =
-                    value.as_str().map(|s| H256::from_hex(s)).transpose()?;
+                    value.as_str().map(H256::from_hex).transpose()?;
                 Ok(hash)
             }
             None => Ok(None),

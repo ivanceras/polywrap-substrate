@@ -191,10 +191,9 @@ impl PalletMetadata {
     where
         C: Encode,
     {
-        let fn_index = self
-            .calls
-            .get(call_name)
-            .ok_or(MetadataError::CallNotFound(call_name.to_string()))?;
+        let fn_index = self.calls.get(call_name).ok_or_else(|| {
+            MetadataError::CallNotFound(call_name.to_string())
+        })?;
         let mut bytes = vec![self.index, *fn_index];
         bytes.extend(args.encode());
         Ok(Encoded(bytes))
@@ -206,7 +205,7 @@ impl PalletMetadata {
     ) -> Result<&StorageEntryMetadata<PortableForm>, MetadataError> {
         self.storage
             .get(key)
-            .ok_or(MetadataError::StorageNotFound(key.to_string()))
+            .ok_or_else(|| MetadataError::StorageNotFound(key.to_string()))
     }
 
     /// Get a constant's metadata by name
@@ -216,7 +215,7 @@ impl PalletMetadata {
     ) -> Result<&PalletConstantMetadata<PortableForm>, MetadataError> {
         self.constants
             .get(key)
-            .ok_or(MetadataError::ConstantNotFound(key.to_string()))
+            .ok_or_else(|| MetadataError::ConstantNotFound(key.to_string()))
     }
 }
 
