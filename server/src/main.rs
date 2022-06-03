@@ -1,16 +1,32 @@
 #![deny(warnings)]
 use async_graphql::{
-    http::{playground_source, GraphQLPlaygroundConfig},
-    EmptyMutation, EmptySubscription, Schema,
+    http::{
+        playground_source,
+        GraphQLPlaygroundConfig,
+    },
+    EmptyMutation,
+    EmptySubscription,
+    Schema,
 };
-use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
+use async_graphql_axum::{
+    GraphQLRequest,
+    GraphQLResponse,
+};
 use axum::{
     extract::Extension,
-    response::{self, IntoResponse},
+    response::{
+        self,
+        IntoResponse,
+    },
     routing::get,
-    Router, Server,
+    Router,
+    Server,
 };
-use graphql_substrate::{ChainApi, ChainApiSchema, QueryRoot};
+use graphql_substrate::{
+    ChainApi,
+    ChainApiSchema,
+    QueryRoot,
+};
 
 async fn graphql_handler(
     schema: Extension<ChainApiSchema>,

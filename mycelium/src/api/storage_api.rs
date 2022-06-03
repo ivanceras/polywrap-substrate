@@ -1,6 +1,8 @@
-use crate::api::Api;
-use crate::utils::FromHexStr;
-use crate::Error;
+use crate::{
+    api::Api,
+    utils::FromHexStr,
+    Error,
+};
 use codec::Decode;
 use sp_core::storage::StorageKey;
 
@@ -18,7 +20,8 @@ impl Api {
         let metadata = self.fetch_metadata().await?;
         match metadata {
             Some(metadata) => {
-                let storage_key = metadata.storage_value_key(module, storage_name)?;
+                let storage_key =
+                    metadata.storage_value_key(module, storage_name)?;
                 println!("storage_key: 0x{}", hex::encode(&storage_key));
                 self.fetch_storage_by_key_hash(storage_key).await
             }
@@ -65,9 +68,10 @@ mod tests {
 
     #[tokio::test]
     async fn show_total_balance_total_issuance() {
-        let result: Result<Option<u128>, Error> = Api::new("http://localhost:9933")
-            .fetch_storage_value("Balances", "TotalIssuance")
-            .await;
+        let result: Result<Option<u128>, Error> =
+            Api::new("http://localhost:9933")
+                .fetch_storage_value("Balances", "TotalIssuance")
+                .await;
         println!("result: {:?}", result);
         assert!(result.is_ok());
         let result = result.ok().flatten().unwrap();
@@ -77,9 +81,10 @@ mod tests {
 
     #[tokio::test]
     async fn show_template_module() {
-        let result: Result<Option<u32>, Error> = Api::new("http://localhost:9933")
-            .fetch_storage_value("TemplateModule", "Something")
-            .await;
+        let result: Result<Option<u32>, Error> =
+            Api::new("http://localhost:9933")
+                .fetch_storage_value("TemplateModule", "Something")
+                .await;
         println!("result: {:?}", result);
         assert!(result.is_ok());
     }

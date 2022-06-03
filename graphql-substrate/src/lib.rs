@@ -1,7 +1,13 @@
 #![deny(warnings)]
 #![allow(clippy::needless_lifetimes)]
-use async_graphql::Context;
-use async_graphql::{EmptyMutation, EmptySubscription, Object, Schema, SimpleObject};
+use async_graphql::{
+    Context,
+    EmptyMutation,
+    EmptySubscription,
+    Object,
+    Schema,
+    SimpleObject,
+};
 use mycelium::Api;
 use node_template_runtime::Block;
 
@@ -28,32 +34,46 @@ impl ChainApi {
         ChainApi
     }
 
-    pub async fn block(&self, number: u32) -> Result<Option<BlockDetail>, mycelium::Error> {
+    pub async fn block(
+        &self,
+        number: u32,
+    ) -> Result<Option<BlockDetail>, mycelium::Error> {
         let block = Api::new("http://localhost:9933")
             .fetch_block::<Block>(number)
             .await?;
         match block {
-            Some(block) => Ok(Some(BlockDetail {
-                number: block.header.number.to_string(),
-                header: Header {
-                    parent_hash: block.header.parent_hash.to_string(),
-                    state_root: block.header.state_root.to_string(),
-                    extrinsics_root: block.header.extrinsics_root.to_string(),
-                },
-            })),
+            Some(block) => {
+                Ok(Some(BlockDetail {
+                    number: block.header.number.to_string(),
+                    header: Header {
+                        parent_hash: block.header.parent_hash.to_string(),
+                        state_root: block.header.state_root.to_string(),
+                        extrinsics_root: block
+                            .header
+                            .extrinsics_root
+                            .to_string(),
+                    },
+                }))
+            }
             None => Ok(None),
         }
     }
 
-    pub async fn metadata(&self) -> Result<Option<mycelium::Metadata>, mycelium::Error> {
+    pub async fn metadata(
+        &self,
+    ) -> Result<Option<mycelium::Metadata>, mycelium::Error> {
         Api::new("http://localhost:9933").fetch_metadata().await
     }
 
-    pub async fn rpc_methods(&self) -> Result<Option<Vec<String>>, mycelium::Error> {
+    pub async fn rpc_methods(
+        &self,
+    ) -> Result<Option<Vec<String>>, mycelium::Error> {
         Api::new("http://localhost:9933").fetch_rpc_methods().await
     }
 
-    pub async fn runtime_version(&self) -> Result<Option<serde_json::Value>, mycelium::Error> {
+    pub async fn runtime_version(
+        &self,
+    ) -> Result<Option<serde_json::Value>, mycelium::Error> {
         let version = Api::new("http://localhost:9933")
             .fetch_runtime_version()
             .await?;

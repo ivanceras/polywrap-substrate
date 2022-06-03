@@ -18,11 +18,21 @@
 //! Primitives for substrate extrinsics.
 
 use crate::types::extrinsic_params::GenericExtra;
-use codec::{Decode, Encode, Error, Input};
+use codec::{
+    Decode,
+    Encode,
+    Error,
+    Input,
+};
 use sp_runtime::MultiSignature;
-pub use sp_runtime::{AccountId32, MultiAddress};
-use sp_std::fmt;
-use sp_std::prelude::*;
+pub use sp_runtime::{
+    AccountId32,
+    MultiAddress,
+};
+use sp_std::{
+    fmt,
+    prelude::*,
+};
 
 pub type AccountIndex = u64;
 
@@ -108,7 +118,8 @@ where
         // with substrate's generic `Vec<u8>` type. Basically this just means accepting that there
         // will be a prefix of vector length (we don't need
         // to use this).
-        let _length_do_not_remove_me_see_above: Vec<()> = Decode::decode(input)?;
+        let _length_do_not_remove_me_see_above: Vec<()> =
+            Decode::decode(input)?;
 
         let version = input.read_byte()?;
 
@@ -130,7 +141,9 @@ where
 }
 
 /// Same function as in primitives::generic. Needed to be copied as it is private there.
-fn encode_with_vec_prefix<T: Encode, F: Fn(&mut Vec<u8>)>(encoder: F) -> Vec<u8> {
+fn encode_with_vec_prefix<T: Encode, F: Fn(&mut Vec<u8>)>(
+    encoder: F,
+) -> Vec<u8> {
     let size = sp_std::mem::size_of::<T>();
     let reserve = match size {
         0..=0b0011_1111 => 1,
@@ -155,16 +168,22 @@ fn encode_with_vec_prefix<T: Encode, F: Fn(&mut Vec<u8>)>(encoder: F) -> Vec<u8>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::extrinsic_params::PlainTip;
-    use crate::types::extrinsic_params::PlainTipExtrinsicParams;
     use crate::types::extrinsic_params::{
-        BaseExtrinsicParams, ExtrinsicParams, PlainTipExtrinsicParamsBuilder,
+        BaseExtrinsicParams,
+        ExtrinsicParams,
+        PlainTip,
+        PlainTipExtrinsicParams,
+        PlainTipExtrinsicParamsBuilder,
     };
-    use sp_core::Pair;
-    use sp_core::H256 as Hash;
-    use sp_runtime::generic::Era;
-    use sp_runtime::testing::sr25519;
-    use sp_runtime::MultiSignature;
+    use sp_core::{
+        Pair,
+        H256 as Hash,
+    };
+    use sp_runtime::{
+        generic::Era,
+        testing::sr25519,
+        MultiSignature,
+    };
 
     #[test]
     fn encode_decode_roundtrip_works() {
@@ -173,8 +192,8 @@ mod tests {
         let signature = pair.sign(&msg);
         let multi_sig = MultiSignature::from(signature);
         let account: AccountId32 = pair.public().into();
-        let tx_params =
-            PlainTipExtrinsicParamsBuilder::new().era(Era::mortal(8, 0), Hash::from([0u8; 32]));
+        let tx_params = PlainTipExtrinsicParamsBuilder::new()
+            .era(Era::mortal(8, 0), Hash::from([0u8; 32]));
 
         let default_extra = BaseExtrinsicParams::new(0, tx_params);
         let xt = UncheckedExtrinsicV4::new_signed(

@@ -1,13 +1,22 @@
-use crate::error::Error;
-use crate::types::metadata::Metadata;
-use crate::utils::FromHexStr;
+use crate::{
+    error::Error,
+    types::metadata::Metadata,
+    utils::FromHexStr,
+};
 use frame_metadata::RuntimeMetadataPrefixed;
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
-use sp_core::Decode;
-use sp_core::H256;
-use sp_runtime::generic::SignedBlock;
-use sp_runtime::traits::Block;
+use serde::{
+    de::DeserializeOwned,
+    Deserialize,
+    Serialize,
+};
+use sp_core::{
+    Decode,
+    H256,
+};
+use sp_runtime::{
+    generic::SignedBlock,
+    traits::Block,
+};
 use sp_version::RuntimeVersion;
 
 mod extrinsic_api;
@@ -47,7 +56,9 @@ impl Api {
     /// `curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "state_getMetadata"}' http://localhost:9933/`
     ///
     /// Which makes an rpc call of a substrate node running locally.
-    pub async fn fetch_runtime_metadata(&self) -> Result<Option<RuntimeMetadataPrefixed>, Error> {
+    pub async fn fetch_runtime_metadata(
+        &self,
+    ) -> Result<Option<RuntimeMetadataPrefixed>, Error> {
         let value = self.json_request_value("state_getMetadata", ()).await?;
         match value {
             Some(value) => {
@@ -55,7 +66,8 @@ impl Api {
                     .as_str()
                     .expect("Expecting a string value on the result");
                 let data = Vec::from_hex(value_str)?;
-                let rt_metadata = RuntimeMetadataPrefixed::decode(&mut data.as_slice())?;
+                let rt_metadata =
+                    RuntimeMetadataPrefixed::decode(&mut data.as_slice())?;
                 Ok(Some(rt_metadata))
             }
             None => Ok(None),
@@ -75,11 +87,14 @@ impl Api {
     }
 
     // curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "rpc_methods"}' http://localhost:9933/
-    pub async fn fetch_rpc_methods(&self) -> Result<Option<Vec<String>>, Error> {
+    pub async fn fetch_rpc_methods(
+        &self,
+    ) -> Result<Option<Vec<String>>, Error> {
         let value = self.json_request_value("rpc_methods", ()).await?;
         match value {
             Some(value) => {
-                let methods: Vec<String> = serde_json::from_value(value["methods"].clone())?;
+                let methods: Vec<String> =
+                    serde_json::from_value(value["methods"].clone())?;
                 Ok(Some(methods))
             }
             None => Ok(None),
@@ -87,14 +102,18 @@ impl Api {
     }
 
     /// return the block hash of block number `n`
-    pub async fn fetch_block_hash(&self, n: u32) -> Result<Option<H256>, Error> {
+    pub async fn fetch_block_hash(
+        &self,
+        n: u32,
+    ) -> Result<Option<H256>, Error> {
         let value = self
             .json_request_value("chain_getBlockHash", vec![n])
             .await?;
 
         match value {
             Some(value) => {
-                let hash = value.as_str().map(|s| H256::from_hex(s)).transpose()?;
+                let hash =
+                    value.as_str().map(|s| H256::from_hex(s)).transpose()?;
                 Ok(hash)
             }
             None => Ok(None),
@@ -115,7 +134,10 @@ impl Api {
     }
 
     /// Fetch a substrate signed block by number `n`
-    pub async fn fetch_signed_block<B>(&self, n: u32) -> Result<Option<SignedBlock<B>>, Error>
+    pub async fn fetch_signed_block<B>(
+        &self,
+        n: u32,
+    ) -> Result<Option<SignedBlock<B>>, Error>
     where
         B: Block + DeserializeOwned,
     {
@@ -128,7 +150,9 @@ impl Api {
         }
     }
 
-    pub async fn chain_get_finalized_head(&self) -> Result<Option<H256>, Error> {
+    pub async fn chain_get_finalized_head(
+        &self,
+    ) -> Result<Option<H256>, Error> {
         let value = self
             .json_request_value("chain_getFinalizedHead", ())
             .await?;
@@ -158,14 +182,17 @@ impl Api {
         }
     }
 
-    pub async fn fetch_runtime_version(&self) -> Result<Option<RuntimeVersion>, Error> {
+    pub async fn fetch_runtime_version(
+        &self,
+    ) -> Result<Option<RuntimeVersion>, Error> {
         let version = self
             .json_request_value("state_getRuntimeVersion", ())
             .await?;
         println!("version: {:#?}", version);
         match version {
             Some(version) => {
-                let rt_version: RuntimeVersion = serde_json::from_value(version)?;
+                let rt_version: RuntimeVersion =
+                    serde_json::from_value(version)?;
                 println!("rt_version: {:#?}", rt_version);
                 Ok(Some(rt_version))
             }
@@ -249,7 +276,8 @@ mod tests {
     #[tokio::test]
     async fn test2() {
         println!("fetching rpc methods...");
-        let result = Api::new("http://localhost:9933").fetch_rpc_methods().await;
+        let result =
+            Api::new("http://localhost:9933").fetch_rpc_methods().await;
         dbg!(&result);
         assert!(result.is_ok());
     }
@@ -271,7 +299,8 @@ mod tests {
         dbg!(&version);
         assert!(version.is_ok());
 
-        let result = Api::new("http://localhost:9933").fetch_block_hash(0).await;
+        let result =
+            Api::new("http://localhost:9933").fetch_block_hash(0).await;
         dbg!(&result);
         assert!(result.is_ok());
 

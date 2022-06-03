@@ -19,7 +19,8 @@ fn show_metadata() {
             .await
             .expect("must not error");
         //log::info!("metadata: {:#?}", metadata);
-        let document: web_sys::Document = web_sys::window().unwrap().document().unwrap();
+        let document: web_sys::Document =
+            web_sys::window().unwrap().document().unwrap();
         let body = document.body().unwrap();
         let pre = document.create_element("pre").unwrap();
         let text = document.create_text_node(&format!("{:#?}", metadata));
@@ -35,7 +36,8 @@ fn show_rpc_methods() {
             .await
             .expect("must not error");
         log::info!("rpc_methods: {:#?}", rpc_methods);
-        let document: web_sys::Document = web_sys::window().unwrap().document().unwrap();
+        let document: web_sys::Document =
+            web_sys::window().unwrap().document().unwrap();
         let body = document.body().unwrap();
         let pre = document.create_element("pre").unwrap();
         let text = document.create_text_node(&format!("{:#?}", rpc_methods));
@@ -46,12 +48,14 @@ fn show_rpc_methods() {
 
 fn show_blocks() {
     spawn_local(async {
-        let block: Option<node_template_runtime::Block> = Api::new("http://localhost:9933")
-            .fetch_block(0)
-            .await
-            .expect("must not error");
+        let block: Option<node_template_runtime::Block> =
+            Api::new("http://localhost:9933")
+                .fetch_block(0)
+                .await
+                .expect("must not error");
         log::debug!("block: {:#?}", block);
-        let document: web_sys::Document = web_sys::window().unwrap().document().unwrap();
+        let document: web_sys::Document =
+            web_sys::window().unwrap().document().unwrap();
         let body = document.body().unwrap();
         let pre = document.create_element("pre").unwrap();
         let text = document.create_text_node(&format!("{:#?}", block));

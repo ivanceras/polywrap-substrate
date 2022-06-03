@@ -1,26 +1,42 @@
-use codec::{Decode, Encode};
-use mycelium::types::account_info::AccountInfo;
-use mycelium::types::extrinsic_params::BaseExtrinsicParams;
-use mycelium::types::extrinsic_params::BaseExtrinsicParamsBuilder;
-use mycelium::types::extrinsic_params::ExtrinsicParams;
-use mycelium::types::extrinsic_params::GenericExtra;
-use mycelium::types::extrinsic_params::PlainTip;
-use mycelium::types::extrinsic_params::PlainTipExtrinsicParams;
-use mycelium::types::extrinsic_params::SignedPayload;
-use mycelium::types::extrinsics::GenericAddress;
-use mycelium::types::extrinsics::UncheckedExtrinsicV4;
-use mycelium::{Api, Metadata};
+use codec::{
+    Decode,
+    Encode,
+};
+use mycelium::{
+    types::{
+        account_info::AccountInfo,
+        extrinsic_params::{
+            BaseExtrinsicParams,
+            BaseExtrinsicParamsBuilder,
+            ExtrinsicParams,
+            GenericExtra,
+            PlainTip,
+            PlainTipExtrinsicParams,
+            SignedPayload,
+        },
+        extrinsics::{
+            GenericAddress,
+            UncheckedExtrinsicV4,
+        },
+    },
+    Api,
+    Metadata,
+};
 //use node_template_runtime::AccountId32;
-use sp_core::storage::StorageKey;
-use sp_core::Pair;
-use sp_core::H256;
+use sp_core::{
+    storage::StorageKey,
+    Pair,
+    H256,
+};
 use sp_keyring::AccountKeyring;
-use sp_runtime::generic::Era;
-use sp_runtime::testing::sr25519;
-use sp_runtime::traits::IdentifyAccount;
-use sp_runtime::AccountId32;
-use sp_runtime::MultiSignature;
-use sp_runtime::MultiSigner;
+use sp_runtime::{
+    generic::Era,
+    testing::sr25519,
+    traits::IdentifyAccount,
+    AccountId32,
+    MultiSignature,
+    MultiSigner,
+};
 use sp_version::RuntimeVersion;
 
 #[tokio::main]
@@ -30,9 +46,11 @@ async fn main() -> Result<(), mycelium::Error> {
 }
 
 async fn execute_extrinsics() -> Result<(), mycelium::Error> {
-    let signer: Option<sp_core::sr25519::Pair> = Some(AccountKeyring::Alice.pair());
+    let signer: Option<sp_core::sr25519::Pair> =
+        Some(AccountKeyring::Alice.pair());
     let api = Api::new("http://localhost:9933");
-    let metadata: Metadata = api.fetch_metadata().await?.expect("cant get a metadata");
+    let metadata: Metadata =
+        api.fetch_metadata().await?.expect("cant get a metadata");
     let pallet = metadata.pallet("TemplateModule")?;
     let call_index = pallet
         .calls
@@ -86,7 +104,8 @@ where
         .expect("must have a finalized head");
     println!("head hash: {:?}", head_hash);
 
-    let metadata: Metadata = api.fetch_metadata().await?.expect("cant get a metadata");
+    let metadata: Metadata =
+        api.fetch_metadata().await?.expect("cant get a metadata");
 
     let xt: UncheckedExtrinsicV4<Call> = if let Some(signer) = signer.as_ref() {
         let multi_signer = MultiSigner::from(signer.public());
@@ -94,13 +113,15 @@ where
         let storage_key: StorageKey = metadata
             .storage_map_key::<AccountId32>("System", "Account", account_id)
             .expect("must have a System Account storage key");
-        let account_info: AccountInfo = api.fetch_storage_by_key_hash(storage_key).await?.unwrap();
+        let account_info: AccountInfo =
+            api.fetch_storage_by_key_hash(storage_key).await?.unwrap();
         let nonce: u32 = account_info.nonce;
         println!("nonce: {}", nonce);
 
         println!("got a signer..");
         let other_params = extrinsic_params.unwrap_or_default();
-        let params: BaseExtrinsicParams<Tip> = BaseExtrinsicParams::new(nonce, other_params);
+        let params: BaseExtrinsicParams<Tip> =
+            BaseExtrinsicParams::new(nonce, other_params);
         let extra = GenericExtra::from(params);
         println!("extra: {:?}", extra);
         let raw_payload = SignedPayload::from_raw(
@@ -116,7 +137,8 @@ where
                 (),
             ),
         );
-        let signature: P::Signature = raw_payload.using_encoded(|payload| signer.sign(payload));
+        let signature: P::Signature =
+            raw_payload.using_encoded(|payload| signer.sign(payload));
         let multi_signer: MultiSigner = signer.public().into();
         let multi_signature: MultiSignature = signature.into();
         UncheckedExtrinsicV4::new_signed(

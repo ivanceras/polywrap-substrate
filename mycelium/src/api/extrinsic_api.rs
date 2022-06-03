@@ -1,22 +1,34 @@
-use crate::error::Error;
-use crate::types::account_info::AccountInfo;
-use crate::types::extrinsic_params::BaseExtrinsicParams;
-use crate::types::extrinsic_params::BaseExtrinsicParamsBuilder;
-use crate::types::extrinsic_params::ExtrinsicParams;
-use crate::types::extrinsic_params::GenericExtra;
-use crate::types::extrinsic_params::SignedPayload;
-use crate::types::extrinsics::GenericAddress;
-use crate::types::extrinsics::UncheckedExtrinsicV4;
-use crate::Api;
-use crate::Metadata;
+use crate::{
+    error::Error,
+    types::{
+        account_info::AccountInfo,
+        extrinsic_params::{
+            BaseExtrinsicParams,
+            BaseExtrinsicParamsBuilder,
+            ExtrinsicParams,
+            GenericExtra,
+            SignedPayload,
+        },
+        extrinsics::{
+            GenericAddress,
+            UncheckedExtrinsicV4,
+        },
+    },
+    Api,
+    Metadata,
+};
 use codec::Encode;
-use sp_core::storage::StorageKey;
-use sp_core::Pair;
-use sp_core::H256;
-use sp_runtime::traits::IdentifyAccount;
-use sp_runtime::AccountId32;
-use sp_runtime::MultiSignature;
-use sp_runtime::MultiSigner;
+use sp_core::{
+    storage::StorageKey,
+    Pair,
+    H256,
+};
+use sp_runtime::{
+    traits::IdentifyAccount,
+    AccountId32,
+    MultiSignature,
+    MultiSigner,
+};
 use sp_version::RuntimeVersion;
 
 impl Api {
@@ -51,9 +63,12 @@ impl Api {
             .expect("must have a finalized head");
         println!("head hash: {:?}", head_hash);
 
-        let metadata: Metadata = self.fetch_metadata().await?.expect("cant get a metadata");
+        let metadata: Metadata =
+            self.fetch_metadata().await?.expect("cant get a metadata");
 
-        let xt: UncheckedExtrinsicV4<Call> = if let Some(signer) = signer.as_ref() {
+        let xt: UncheckedExtrinsicV4<Call> = if let Some(signer) =
+            signer.as_ref()
+        {
             let multi_signer = MultiSigner::from(signer.public());
             let account_id: AccountId32 = multi_signer.into_account();
             let storage_key: StorageKey = metadata
@@ -66,7 +81,8 @@ impl Api {
 
             println!("got a signer..");
             let other_params = extrinsic_params.unwrap_or_default();
-            let params: BaseExtrinsicParams<Tip> = BaseExtrinsicParams::new(nonce, other_params);
+            let params: BaseExtrinsicParams<Tip> =
+                BaseExtrinsicParams::new(nonce, other_params);
             let extra = GenericExtra::from(params);
             println!("extra: {:?}", extra);
             let raw_payload = SignedPayload::from_raw(
@@ -82,7 +98,8 @@ impl Api {
                     (),
                 ),
             );
-            let signature: P::Signature = raw_payload.using_encoded(|payload| signer.sign(payload));
+            let signature: P::Signature =
+                raw_payload.using_encoded(|payload| signer.sign(payload));
             let multi_signer: MultiSigner = signer.public().into();
             let multi_signature: MultiSignature = signature.into();
             UncheckedExtrinsicV4::new_signed(

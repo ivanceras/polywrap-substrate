@@ -1,4 +1,7 @@
-use ipfs_api_backend_hyper::{IpfsApi, IpfsClient};
+use ipfs_api_backend_hyper::{
+    IpfsApi,
+    IpfsClient,
+};
 use std::io::Cursor;
 
 #[tokio::main]
