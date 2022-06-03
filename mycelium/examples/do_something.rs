@@ -23,7 +23,7 @@ async fn main() -> Result<(), mycelium::Error> {
         .calls
         .get("do_something")
         .expect("function name does not exist");
-    let call = ([pallet.index, *call_index as u8], (200u32));
+    let call = ([pallet.index, *call_index], (200u32));
 
     let xt = api.compose_extrinsics::<
         sp_core::sr25519::Pair,
