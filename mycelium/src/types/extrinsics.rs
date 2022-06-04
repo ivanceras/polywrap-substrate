@@ -64,6 +64,13 @@ where
         }
     }
 
+    pub fn new_unsigned(function: Call) -> Self {
+        Self {
+            signature: None,
+            function,
+        }
+    }
+
     pub fn hex_encode(&self) -> String {
         let mut hex_str = hex::encode(self.encode());
         hex_str.insert_str(0, "0x");
@@ -95,12 +102,10 @@ where
         encode_with_vec_prefix::<Self, _>(|v| {
             match self.signature.as_ref() {
                 Some(s) => {
-                    println!("--->>> It is using a signature..");
                     v.push(V4 | 0b1000_0000);
                     s.encode_to(v);
                 }
                 None => {
-                    println!("___ OK _no signature is used____");
                     v.push(V4 & 0b0111_1111);
                 }
             }

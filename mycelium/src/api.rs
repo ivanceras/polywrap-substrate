@@ -112,8 +112,7 @@ impl Api {
 
         match value {
             Some(value) => {
-                let hash =
-                    value.as_str().map(H256::from_hex).transpose()?;
+                let hash = value.as_str().map(H256::from_hex).transpose()?;
                 Ok(hash)
             }
             None => Ok(None),
@@ -248,10 +247,7 @@ impl Api {
             .await?;
 
         match response.get("error") {
-            Some(error) => {
-                println!("response error: {:#?}", error);
-                Err(Error::ResponseJsonError(error.clone()))
-            }
+            Some(error) => Err(Error::ResponseJsonError(error.clone())),
             None => {
                 let result: JsonResult = serde_json::from_value(response)?;
                 Ok(result)
