@@ -27,7 +27,7 @@ async fn main() -> Result<(), mycelium::Error> {
         PlainTipExtrinsicParams,
         PlainTip,
         ([u8; 2], u32),
-    >(Some(signer), call, None)
+    >(Some(signer), call, None, None)
     .await?;
 
     let encoded = xt.hex_encode();

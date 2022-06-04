@@ -15,7 +15,7 @@ use sp_core::{
 };
 use sp_runtime::{
     generic::SignedBlock,
-    traits::Block,
+    traits::{Block, Header},
 };
 use sp_version::RuntimeVersion;
 
@@ -161,6 +161,19 @@ impl Api {
                 Ok(Some(H256::from_hex(value_str)?))
             }
             None => Ok(None),
+        }
+    }
+
+    pub async fn chain_get_header<H>(&self, hash: H256) -> Result<Option<H>,Error>
+        where H:Header + DeserializeOwned,
+    {
+        let value = self.json_request_value("chain_getHeader",vec![hash]).await?;
+        match value{
+            Some(value) => {
+                println!("value: {:?}", value);
+                Ok(Some(serde_json::from_value(value)?))
+            }
+            None => Ok(None)
         }
     }
 

@@ -51,7 +51,7 @@ async fn main() -> Result<(), mycelium::Error> {
         PlainTipExtrinsicParams,
         PlainTip,
         ([u8;2],([u8; 2], GenericAddress, Compact<u128>, Compact<u128>)),
-    >(Some(sudoer), sudo_call, None)
+    >(Some(sudoer), sudo_call, None, None)
     .await?;
 
     let encoded = xt.hex_encode();

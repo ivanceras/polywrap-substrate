@@ -29,6 +29,7 @@ use sp_runtime::{
     MultiSignature,
     MultiSigner,
 };
+use std::fmt;
 use sp_version::RuntimeVersion;
 
 impl Api {
@@ -83,6 +84,7 @@ impl Api {
         &self,
         signer: Option<P>,
         call: Call,
+        head_hash: Option<H256>,
         extrinsic_params: Option<Params::OtherParams>,
     ) -> Result<UncheckedExtrinsicV4<Call>, Error>
     where
@@ -92,7 +94,7 @@ impl Api {
         MultiSignature: From<P::Signature>,
         u128: From<Tip>,
         Tip: Encode + Default,
-        Call: Encode + Clone,
+        Call: Encode + Clone + fmt::Debug,
     {
         match signer {
             None => Ok(self.unsigned_extrinsic(call)),
@@ -114,6 +116,11 @@ impl Api {
                 let params: BaseExtrinsicParams<Tip> =
                     BaseExtrinsicParams::new(nonce, other_params);
                 let extra = GenericExtra::from(params);
+                println!("call: {:?}", call);
+                let head_or_genesis_hash = match head_hash{
+                    Some(hash) => hash,
+                    None => genesis_hash,
+                };
                 let raw_payload = SignedPayload::from_raw(
                     call.clone(),
                     extra.clone(),
@@ -121,7 +128,7 @@ impl Api {
                         runtime_version.spec_version,
                         runtime_version.transaction_version,
                         genesis_hash,
-                        genesis_hash,
+                        head_or_genesis_hash,
                         (),
                         (),
                         (),
