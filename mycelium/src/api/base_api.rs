@@ -207,12 +207,10 @@ impl BaseApi {
         let version = self
             .json_request_value("state_getRuntimeVersion", ())
             .await?;
-        println!("version: {:#?}", version);
         match version {
             Some(version) => {
                 let rt_version: RuntimeVersion =
                     serde_json::from_value(version)?;
-                println!("rt_version: {:#?}", rt_version);
                 Ok(Some(rt_version))
             }
             None => Ok(None),
