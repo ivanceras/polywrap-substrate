@@ -12,9 +12,8 @@ use sp_keyring::AccountKeyring;
 #[tokio::main]
 async fn main() -> Result<(), mycelium::Error> {
     let signer: sp_core::sr25519::Pair = AccountKeyring::Alice.pair();
-    let api = Api::new("http://localhost:9933");
-    let metadata: Metadata =
-        api.fetch_metadata().await?.expect("cant get a metadata");
+    let api = Api::new("http://localhost:9933").await?;
+    let metadata: &Metadata = api.metadata();
     let pallet = metadata.pallet("TemplateModule")?;
     let call_index = pallet
         .calls

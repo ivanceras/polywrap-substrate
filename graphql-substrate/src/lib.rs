@@ -8,7 +8,10 @@ use async_graphql::{
     Schema,
     SimpleObject,
 };
-use mycelium::Api;
+use mycelium::{
+    Api,
+    BaseApi,
+};
 use node_template_runtime::Block;
 
 pub type ChainApiSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
@@ -38,7 +41,7 @@ impl ChainApi {
         &self,
         number: u32,
     ) -> Result<Option<BlockDetail>, mycelium::Error> {
-        let block = Api::new("http://localhost:9933")
+        let block = BaseApi::new("http://localhost:9933")
             .fetch_block::<Block>(number)
             .await?;
         match block {
@@ -62,25 +65,24 @@ impl ChainApi {
     pub async fn metadata(
         &self,
     ) -> Result<Option<mycelium::Metadata>, mycelium::Error> {
-        Api::new("http://localhost:9933").fetch_metadata().await
+        let api = Api::new("http://localhost:9933").await?;
+        Ok(Some(api.metadata().clone()))
     }
 
     pub async fn rpc_methods(
         &self,
     ) -> Result<Option<Vec<String>>, mycelium::Error> {
-        Api::new("http://localhost:9933").fetch_rpc_methods().await
+        BaseApi::new("http://localhost:9933")
+            .fetch_rpc_methods()
+            .await
     }
 
     pub async fn runtime_version(
         &self,
     ) -> Result<Option<serde_json::Value>, mycelium::Error> {
-        let version = Api::new("http://localhost:9933")
-            .fetch_runtime_version()
-            .await?;
-        match version {
-            Some(version) => Ok(Some(serde_json::to_value(version)?)),
-            None => Ok(None),
-        }
+        let api = Api::new("http://localhost:9933").await?;
+        let version = api.runtime_version();
+        Ok(Some(serde_json::to_value(version)?))
     }
 }
 

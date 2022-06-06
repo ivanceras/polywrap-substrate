@@ -1,4 +1,7 @@
-use mycelium::Api;
+use mycelium::{
+    Api,
+    BaseApi,
+};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
 
@@ -14,10 +17,10 @@ pub fn start() {
 
 fn show_metadata() {
     spawn_local(async {
-        let metadata = Api::new("http://localhost:9933")
-            .fetch_metadata()
+        let api = Api::new("http://localhost:9933")
             .await
-            .expect("must not error");
+            .expect("must create an api");
+        let metadata = api.metadata();
         //log::info!("metadata: {:#?}", metadata);
         let document: web_sys::Document =
             web_sys::window().unwrap().document().unwrap();
@@ -31,7 +34,7 @@ fn show_metadata() {
 
 fn show_rpc_methods() {
     spawn_local(async {
-        let rpc_methods = Api::new("http://localhost:9933")
+        let rpc_methods = BaseApi::new("http://localhost:9933")
             .fetch_rpc_methods()
             .await
             .expect("must not error");
@@ -49,7 +52,7 @@ fn show_rpc_methods() {
 fn show_blocks() {
     spawn_local(async {
         let block: Option<node_template_runtime::Block> =
-            Api::new("http://localhost:9933")
+            BaseApi::new("http://localhost:9933")
                 .fetch_block(0)
                 .await
                 .expect("must not error");

@@ -19,9 +19,8 @@ async fn main() -> Result<(), mycelium::Error> {
 
     let to = AccountKeyring::Bob.to_account_id();
 
-    let api = Api::new("http://localhost:9933");
-    let metadata: Metadata =
-        api.fetch_metadata().await?.expect("cant get a metadata");
+    let api = Api::new("http://localhost:9933").await?;
+    let metadata: &Metadata = api.metadata();
 
     let balance_pallet = metadata.pallet("Balances")?;
     let set_balance_call_index = balance_pallet

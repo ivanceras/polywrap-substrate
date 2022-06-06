@@ -6,7 +6,6 @@ use crate::{
 use codec::Decode;
 use sp_core::storage::StorageKey;
 
-
 impl Api {
     // curl -H "Content-Type: application/json" -d '{"id":"1","jsonrpc":"2.0","method":"state_getStorage","params":["0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9de1e86a9a8c739864cf3cc5ec2bea59fd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",null]}' http://localhost:9933/
     pub async fn fetch_storage_value<'a, V>(
@@ -17,17 +16,10 @@ impl Api {
     where
         V: Decode,
     {
-        //TODO: store the metadata at the first fetch
-        let metadata = self.fetch_metadata().await?;
-        match metadata {
-            Some(metadata) => {
-                let storage_key =
-                    metadata.storage_value_key(module, storage_name)?;
-                println!("storage_key: 0x{}", hex::encode(&storage_key));
-                self.fetch_storage_by_key_hash(storage_key).await
-            }
-            None => Ok(None),
-        }
+        let storage_key =
+            self.metadata.storage_value_key(module, storage_name)?;
+        println!("storage_key: 0x{}", hex::encode(&storage_key));
+        self.fetch_storage_by_key_hash(storage_key).await
     }
 
     pub async fn fetch_storage_by_key_hash<V>(
@@ -48,6 +40,7 @@ impl Api {
         storage_key: StorageKey,
     ) -> Result<Option<Vec<u8>>, Error> {
         let value = self
+            .base_api
             .json_request_value("state_getStorage", [storage_key])
             .await?;
 
@@ -69,10 +62,11 @@ mod tests {
 
     #[tokio::test]
     async fn show_total_balance_total_issuance() {
+        let api = Api::new("http://localhost:9933")
+            .await
+            .expect("must not error");
         let result: Result<Option<u128>, Error> =
-            Api::new("http://localhost:9933")
-                .fetch_storage_value("Balances", "TotalIssuance")
-                .await;
+            api.fetch_storage_value("Balances", "TotalIssuance").await;
         println!("result: {:?}", result);
         assert!(result.is_ok());
         let result = result.ok().flatten().unwrap();
@@ -82,10 +76,11 @@ mod tests {
 
     #[tokio::test]
     async fn show_template_module() {
+        let api = Api::new("http://localhost:9933")
+            .await
+            .expect("must not error");
         let result: Result<Option<u32>, Error> =
-            Api::new("http://localhost:9933")
-                .fetch_storage_value("TemplateModule", "Something")
-                .await;
+            api.fetch_storage_value("TemplateModule", "Something").await;
         println!("result: {:?}", result);
         assert!(result.is_ok());
     }

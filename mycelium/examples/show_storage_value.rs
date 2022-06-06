@@ -3,7 +3,7 @@ use mycelium::Api;
 
 #[tokio::main]
 async fn main() -> Result<(), mycelium::Error> {
-    let api = Api::new("http://localhost:9933");
+    let api = Api::new("http://localhost:9933").await?;
     let something: Result<Option<u32>, _> =
         api.fetch_storage_value("TemplateModule", "Something").await;
     println!("something: {:?}", something);

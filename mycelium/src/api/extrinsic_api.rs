@@ -1,4 +1,5 @@
 use crate::{
+    api::Api,
     error::Error,
     types::{
         account_info::AccountInfo,
@@ -14,8 +15,6 @@ use crate::{
             UncheckedExtrinsicV4,
         },
     },
-    Api,
-    Metadata,
 };
 use codec::Encode;
 use sp_core::{
@@ -29,7 +28,6 @@ use sp_runtime::{
     MultiSignature,
     MultiSigner,
 };
-use sp_version::RuntimeVersion;
 use std::fmt;
 
 impl Api {
@@ -59,9 +57,8 @@ impl Api {
         &self,
         account_id: AccountId32,
     ) -> Result<Option<AccountInfo>, Error> {
-        let metadata: Metadata =
-            self.fetch_metadata().await?.expect("cant get a metadata");
-        let storage_key: StorageKey = metadata
+        let storage_key: StorageKey = self
+            .metadata
             .storage_map_key::<AccountId32>("System", "Account", account_id)?;
         self.fetch_storage_by_key_hash(storage_key).await
     }
@@ -95,15 +92,6 @@ impl Api {
         match signer {
             None => Ok(self.unsigned_extrinsic(call)),
             Some(signer) => {
-                let runtime_version: RuntimeVersion = self
-                    .fetch_runtime_version()
-                    .await?
-                    .expect("cant get a runtime version");
-                let genesis_hash: H256 = self
-                    .fetch_genesis_hash()
-                    .await?
-                    .expect("cant get a genesis hash");
-
                 let nonce = self.get_nonce(&signer).await?;
 
                 let other_params = extrinsic_params.unwrap_or_default();
@@ -113,15 +101,15 @@ impl Api {
                 println!("call: {:?}", call);
                 let head_or_genesis_hash = match head_hash {
                     Some(hash) => hash,
-                    None => genesis_hash,
+                    None => self.genesis_hash,
                 };
                 let raw_payload = SignedPayload::from_raw(
                     call.clone(),
                     extra.clone(),
                     (
-                        runtime_version.spec_version,
-                        runtime_version.transaction_version,
-                        genesis_hash,
+                        self.runtime_version.spec_version,
+                        self.runtime_version.transaction_version,
+                        self.genesis_hash,
                         head_or_genesis_hash,
                         (),
                         (),

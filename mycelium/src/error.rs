@@ -10,6 +10,12 @@ pub enum Error {
     JsonError(#[from] serde_json::Error),
     #[error("Invalid metadata: {0}")]
     InvalidMetadataError(#[from] metadata::InvalidMetadataError),
+    #[error("Unable to get chain Metadata")]
+    NoMetadata,
+    #[error("Unable to get chain Genesis hash")]
+    NoGenesisHash,
+    #[error("Unable to get chain Runtime version")]
+    NoRuntimeVersion,
     #[error("Metadata error: {0}")]
     MetadataError(#[from] metadata::MetadataError),
     #[error("Codec error: {0}")]

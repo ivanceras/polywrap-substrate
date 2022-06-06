@@ -710,6 +710,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "delegate"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d70a2d4995466955a415223acf3c9c934b9ff2339631cdf4ffc893da4bacd717"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "deployer"
 version = "0.1.0"
 dependencies = [
@@ -1947,6 +1958,7 @@ name = "mycelium"
 version = "0.1.0"
 dependencies = [
  "async-graphql",
+ "delegate",
  "frame-metadata",
  "getrandom 0.2.6",
  "hex",

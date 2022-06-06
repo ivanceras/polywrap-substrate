@@ -1,6 +1,9 @@
-#![deny(warnings)]
+#![allow(warnings)]
 
-pub use api::*;
+pub use api::{
+    Api,
+    BaseApi,
+};
 pub use error::Error;
 pub use types::metadata::Metadata;
 
