@@ -29,8 +29,8 @@ use sp_runtime::{
     MultiSignature,
     MultiSigner,
 };
-use std::fmt;
 use sp_version::RuntimeVersion;
+use std::fmt;
 
 impl Api {
     pub fn signer_account<P>(&self, signer: &P) -> AccountId32
@@ -42,18 +42,13 @@ impl Api {
         multi_signer.into_account()
     }
 
-    pub async fn get_nonce<P>(
-        &self,
-        metadata: &Metadata,
-        signer: &P,
-    ) -> Result<u32, Error>
+    pub async fn get_nonce<P>(&self, signer: &P) -> Result<u32, Error>
     where
         P: Pair,
         MultiSigner: From<P::Public>,
     {
         let signer_account = self.signer_account(signer);
-        let account_info =
-            self.get_account_info(metadata, signer_account).await?;
+        let account_info = self.get_account_info(signer_account).await?;
         match account_info {
             None => Ok(0),
             Some(account_info) => Ok(account_info.nonce),
@@ -62,9 +57,10 @@ impl Api {
 
     pub async fn get_account_info(
         &self,
-        metadata: &Metadata,
         account_id: AccountId32,
     ) -> Result<Option<AccountInfo>, Error> {
+        let metadata: Metadata =
+            self.fetch_metadata().await?.expect("cant get a metadata");
         let storage_key: StorageKey = metadata
             .storage_map_key::<AccountId32>("System", "Account", account_id)?;
         self.fetch_storage_by_key_hash(storage_key).await
@@ -108,16 +104,14 @@ impl Api {
                     .await?
                     .expect("cant get a genesis hash");
 
-                let metadata: Metadata =
-                    self.fetch_metadata().await?.expect("cant get a metadata");
-                let nonce = self.get_nonce(&metadata, &signer).await?;
+                let nonce = self.get_nonce(&signer).await?;
 
                 let other_params = extrinsic_params.unwrap_or_default();
                 let params: BaseExtrinsicParams<Tip> =
                     BaseExtrinsicParams::new(nonce, other_params);
                 let extra = GenericExtra::from(params);
                 println!("call: {:?}", call);
-                let head_or_genesis_hash = match head_hash{
+                let head_or_genesis_hash = match head_hash {
                     Some(hash) => hash,
                     None => genesis_hash,
                 };

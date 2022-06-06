@@ -5,18 +5,24 @@ use mycelium::{
         extrinsic_params::{
             PlainTip,
             PlainTipExtrinsicParams,
+            PlainTipExtrinsicParamsBuilder,
         },
         extrinsics::GenericAddress,
     },
     Api,
     Metadata,
 };
-use sp_keyring::AccountKeyring;
-use node_template_runtime::{BalancesCall, Call, Header};
-use sp_runtime::MultiAddress;
-use sp_runtime::generic::Era;
+use node_template_runtime::{
+    BalancesCall,
+    Call,
+    Header,
+};
 use sp_core::H256;
-use mycelium::types::extrinsic_params::PlainTipExtrinsicParamsBuilder;
+use sp_keyring::AccountKeyring;
+use sp_runtime::{
+    generic::Era,
+    MultiAddress,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), mycelium::Error> {
@@ -33,14 +39,20 @@ async fn main() -> Result<(), mycelium::Error> {
         .await?
         .expect("cant get a genesis hash");
 
-    let head_hash = api.chain_get_finalized_head().await?.expect("must have a finalized head");
-    let header: Header = api.chain_get_header(head_hash).await?.expect("must have a header");
+    let head_hash = api
+        .chain_get_finalized_head()
+        .await?
+        .expect("must have a finalized head");
+    let header: Header = api
+        .chain_get_header(head_hash)
+        .await?
+        .expect("must have a header");
     let period = 5;
     let tx_params = PlainTipExtrinsicParamsBuilder::new()
         .era(Era::mortal(period, header.number.into()), genesis_hash)
         .tip(10);
 
-    let call:Call = Call::Balances(BalancesCall::transfer {
+    let call: Call = Call::Balances(BalancesCall::transfer {
         dest: MultiAddress::Id(to),
         value: 69_420,
     });
