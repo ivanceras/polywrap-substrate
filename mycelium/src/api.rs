@@ -28,11 +28,15 @@ impl Api {
     // delegte function calls to BaseApi
     delegate! {
         to self.base_api {
+
+            #[call(fetch_finalized_head)]
             pub async fn chain_get_finalized_head(&self) -> Result<Option<H256>, Error>;
 
+            #[call(fetch_header)]
             pub async fn chain_get_header<H>(&self, hash: H256) -> Result<Option<H>,Error>
                 where H:Header + DeserializeOwned;
 
+            #[call(submit_extrinsic)]
             pub async fn author_submit_extrinsic(
                 &self,
                 hex_extrinsic: &str,

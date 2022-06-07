@@ -150,7 +150,7 @@ impl BaseApi {
         }
     }
 
-    pub async fn chain_get_finalized_head(
+    pub async fn fetch_finalized_head(
         &self,
     ) -> Result<Option<H256>, Error> {
         let value = self
@@ -165,7 +165,7 @@ impl BaseApi {
         }
     }
 
-    pub async fn chain_get_header<H>(
+    pub async fn fetch_header<H>(
         &self,
         hash: H256,
     ) -> Result<Option<H>, Error>
@@ -217,7 +217,7 @@ impl BaseApi {
         }
     }
 
-    pub async fn author_submit_extrinsic(
+    pub async fn submit_extrinsic(
         &self,
         hex_extrinsic: &str,
     ) -> Result<Option<serde_json::Value>, Error> {
