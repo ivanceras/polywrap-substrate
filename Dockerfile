@@ -1,11 +1,12 @@
-
 # using 2 build step
 FROM rust:1.60.0-slim-bullseye as build
 
-RUN apt-get update && apt-get install -y build-essential libssl-dev pkg-config
+RUN apt-get update && apt-get install -y curl build-essential libssl-dev pkg-config clang
 RUN cargo install wasm-pack
 COPY . .
 RUN cargo build --release -p server
+RUN wasm-pack build --release --target web examples/mycelium_usage
+RUN cargo build --release --target wasm32-unknown-unknown -p mycelium
 
 
 # The actual server image

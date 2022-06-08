@@ -27,3 +27,5 @@
     - [ ] show accounts
     - [ ] Balance of an account
     - [X] Interact with pallets by calling the pallets functionality
+    - [X] Execute balance transfers
+    - [ ] Show storage maps and values
