@@ -23,13 +23,12 @@ use axum::{
     Server,
 };
 use graphql_substrate::{
-    ChainApi,
-    ChainApiSchema,
+    SubstrateApiSchema,
     QueryRoot,
 };
 
 async fn graphql_handler(
-    schema: Extension<ChainApiSchema>,
+    schema: Extension<SubstrateApiSchema>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
     schema.execute(req.into_inner()).await.into()
@@ -42,7 +41,6 @@ async fn graphql_playground() -> impl IntoResponse {
 #[tokio::main]
 async fn main() {
     let schema = Schema::build(QueryRoot, EmptyMutation, EmptySubscription)
-        .data(ChainApi::new())
         .finish();
 
     let app = Router::new()

@@ -1,7 +1,6 @@
 #![deny(warnings)]
 #![allow(clippy::needless_lifetimes)]
 use async_graphql::{
-    Context,
     EmptyMutation,
     EmptySubscription,
     Object,
@@ -14,7 +13,7 @@ use mycelium::{
 };
 use node_template_runtime::Block;
 
-pub type ChainApiSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
+pub type SubstrateApiSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
 
 #[derive(SimpleObject)]
 pub struct Header {
@@ -29,19 +28,19 @@ pub struct BlockDetail {
     header: Header,
 }
 
-pub struct ChainApi;
 
-impl ChainApi {
-    #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        ChainApi
-    }
+pub struct QueryRoot;
 
-    pub async fn block(
+#[Object]
+impl QueryRoot {
+    async fn block<'a>(
         &self,
+        #[graphql(desc = "url of substrate node endpoint")]
+        url: String,
+        #[graphql(desc = "the block number")]
         number: u32,
     ) -> Result<Option<BlockDetail>, mycelium::Error> {
-        let block = BaseApi::new("http://localhost:9933")
+        let block = BaseApi::new(&url)
             .fetch_block::<Block>(number)
             .await?;
         match block {
@@ -62,60 +61,41 @@ impl ChainApi {
         }
     }
 
-    pub async fn metadata(
-        &self,
-    ) -> Result<Option<mycelium::Metadata>, mycelium::Error> {
-        let api = Api::new("http://localhost:9933").await?;
-        Ok(Some(api.metadata().clone()))
-    }
-
-    pub async fn rpc_methods(
-        &self,
-    ) -> Result<Option<Vec<String>>, mycelium::Error> {
-        BaseApi::new("http://localhost:9933")
-            .fetch_rpc_methods()
-            .await
-    }
-
-    pub async fn runtime_version(
-        &self,
-    ) -> Result<Option<serde_json::Value>, mycelium::Error> {
-        let api = Api::new("http://localhost:9933").await?;
-        let version = api.runtime_version();
-        Ok(Some(serde_json::to_value(version)?))
-    }
-}
-
-pub struct QueryRoot;
-
-#[Object]
-impl QueryRoot {
-    async fn block<'a>(
-        &self,
-        ctx: &Context<'a>,
-        #[graphql(desc = "the block number")] number: u32,
-    ) -> Result<Option<BlockDetail>, mycelium::Error> {
-        ctx.data_unchecked::<ChainApi>().block(number).await
-    }
-
     async fn metadata<'a>(
         &self,
-        ctx: &Context<'a>,
+        #[graphql(desc = "url of substrate node endpoint")]
+        url: String,
     ) -> Result<Option<mycelium::Metadata>, mycelium::Error> {
-        ctx.data_unchecked::<ChainApi>().metadata().await
+        let api = Api::new(&url).await?;
+        Ok(Some(api.metadata().clone()))
     }
 
     async fn rpc_methods<'a>(
         &self,
-        ctx: &Context<'a>,
+        #[graphql(desc = "url of substrate node endpoint")]
+        url: String,
     ) -> Result<Option<Vec<String>>, mycelium::Error> {
-        ctx.data_unchecked::<ChainApi>().rpc_methods().await
+        BaseApi::new(&url)
+            .fetch_rpc_methods()
+            .await
     }
 
     async fn runtime_version<'a>(
         &self,
-        ctx: &Context<'a>,
+        #[graphql(desc = "url of substrate node endpoint")]
+        url: String,
     ) -> Result<Option<serde_json::Value>, mycelium::Error> {
-        ctx.data_unchecked::<ChainApi>().runtime_version().await
+        let api = Api::new(&url).await?;
+        let version = api.runtime_version();
+        Ok(Some(serde_json::to_value(version)?))
+    }
+
+    async fn genesis_hash<'a>(&self,
+        #[graphql(desc = "url of substrate node endpoint")]
+        url: String,
+        ) -> Result<Option<String>, mycelium::Error> {
+        let hash = BaseApi::new(&url)
+       .fetch_genesis_hash().await?;
+        Ok(hash.map(|h|h.to_string()))
     }
 }
