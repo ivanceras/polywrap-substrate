@@ -33,7 +33,7 @@ pub struct QueryRoot;
 
 #[Object]
 impl QueryRoot {
-    async fn block<'a>(
+    async fn block(
         &self,
         #[graphql(desc = "url of substrate node endpoint")]
         url: String,
@@ -61,7 +61,7 @@ impl QueryRoot {
         }
     }
 
-    async fn metadata<'a>(
+    async fn metadata(
         &self,
         #[graphql(desc = "url of substrate node endpoint")]
         url: String,
@@ -70,7 +70,7 @@ impl QueryRoot {
         Ok(Some(api.metadata().clone()))
     }
 
-    async fn rpc_methods<'a>(
+    async fn rpc_methods(
         &self,
         #[graphql(desc = "url of substrate node endpoint")]
         url: String,
@@ -80,7 +80,7 @@ impl QueryRoot {
             .await
     }
 
-    async fn runtime_version<'a>(
+    async fn runtime_version(
         &self,
         #[graphql(desc = "url of substrate node endpoint")]
         url: String,
@@ -90,7 +90,7 @@ impl QueryRoot {
         Ok(Some(serde_json::to_value(version)?))
     }
 
-    async fn genesis_hash<'a>(&self,
+    async fn genesis_hash(&self,
         #[graphql(desc = "url of substrate node endpoint")]
         url: String,
         ) -> Result<Option<String>, mycelium::Error> {
@@ -98,4 +98,16 @@ impl QueryRoot {
        .fetch_genesis_hash().await?;
         Ok(hash.map(|h|h.to_string()))
     }
+
+    async fn block_hash(&self,
+        #[graphql(desc = "url of substrate node endpoint")]
+        url: String,
+        #[graphql(desc = "the block number")]
+        number: u32,
+        ) -> Result<Option<String>, mycelium::Error> {
+        let hash = BaseApi::new(&url)
+       .fetch_block_hash(number).await?;
+        Ok(hash.map(|h|h.to_string()))
+    }
+
 }
