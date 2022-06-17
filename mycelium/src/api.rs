@@ -24,7 +24,6 @@ pub struct Api {
 }
 
 impl Api {
-
     // delegte function calls to BaseApi
     delegate! {
         to self.base_api {

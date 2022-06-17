@@ -150,9 +150,7 @@ impl BaseApi {
         }
     }
 
-    pub async fn fetch_finalized_head(
-        &self,
-    ) -> Result<Option<H256>, Error> {
+    pub async fn fetch_finalized_head(&self) -> Result<Option<H256>, Error> {
         let value = self
             .json_request_value("chain_getFinalizedHead", ())
             .await?;
@@ -165,10 +163,7 @@ impl BaseApi {
         }
     }
 
-    pub async fn fetch_header<H>(
-        &self,
-        hash: H256,
-    ) -> Result<Option<H>, Error>
+    pub async fn fetch_header<H>(&self, hash: H256) -> Result<Option<H>, Error>
     where
         H: Header + DeserializeOwned,
     {

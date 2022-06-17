@@ -3,7 +3,10 @@ use crate::{
     utils::FromHexStr,
     Error,
 };
-use codec::Decode;
+use codec::{
+    Decode,
+    Encode,
+};
 use sp_core::storage::StorageKey;
 
 impl Api {
@@ -18,7 +21,42 @@ impl Api {
     {
         let storage_key =
             self.metadata.storage_value_key(module, storage_name)?;
-        println!("storage_key: 0x{}", hex::encode(&storage_key));
+        self.fetch_storage_by_key_hash(storage_key).await
+    }
+
+    pub async fn fetch_storage_map<K, V>(
+        &self,
+        module: &str,
+        storage_name: &str,
+        key: K,
+    ) -> Result<Option<V>, Error>
+    where
+        K: Encode,
+        V: Decode,
+    {
+        let storage_key =
+            self.metadata.storage_map_key(module, storage_name, key)?;
+        self.fetch_storage_by_key_hash(storage_key).await
+    }
+
+    pub async fn fetch_storage_double_map<K, Q, V>(
+        &self,
+        module: &str,
+        storage_name: &str,
+        first: K,
+        second: Q,
+    ) -> Result<Option<V>, Error>
+    where
+        K: Encode,
+        Q: Encode,
+        V: Decode,
+    {
+        let storage_key = self.metadata.storage_double_map_key(
+            module,
+            storage_name,
+            first,
+            second,
+        )?;
         self.fetch_storage_by_key_hash(storage_key).await
     }
 

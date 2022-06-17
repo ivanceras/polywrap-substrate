@@ -57,10 +57,8 @@ impl Api {
         &self,
         account_id: AccountId32,
     ) -> Result<Option<AccountInfo>, Error> {
-        let storage_key: StorageKey = self
-            .metadata
-            .storage_map_key::<AccountId32>("System", "Account", account_id)?;
-        self.fetch_storage_by_key_hash(storage_key).await
+        self.fetch_storage_map("System", "Account", account_id)
+            .await
     }
 
     pub fn unsigned_extrinsic<Call>(
