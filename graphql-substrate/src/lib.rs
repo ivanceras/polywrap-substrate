@@ -22,17 +22,10 @@ use mycelium::types::metadata::ErrorMetadata;
 
 pub type SubstrateApiSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
 
-#[derive(SimpleObject)]
-pub struct Header {
-    parent_hash: String,
-    state_root: String,
-    extrinsics_root: String,
-}
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Serialize)]
 pub struct BlockDetail {
-    number: String,
-    header: Header,
+    block: Json<Block>,
 }
 
 #[derive(SimpleObject, Serialize)]
@@ -78,15 +71,7 @@ impl QueryRoot {
         match block {
             Some(block) => {
                 Ok(Some(BlockDetail {
-                    number: block.header.number.to_string(),
-                    header: Header {
-                        parent_hash: block.header.parent_hash.to_string(),
-                        state_root: block.header.state_root.to_string(),
-                        extrinsics_root: block
-                            .header
-                            .extrinsics_root
-                            .to_string(),
-                    },
+                    block: Json(block),
                 }))
             }
             None => Ok(None),
