@@ -6,12 +6,19 @@ use async_graphql::{
     Object,
     Schema,
     SimpleObject,
+    types::Json,
 };
 use mycelium::{
     Api,
     BaseApi,
 };
 use node_template_runtime::Block;
+use mycelium::types::metadata::PalletMetadata;
+use std::collections::HashMap;
+use mycelium::types::metadata::EventMetadata;
+use mycelium::frame_metadata::RuntimeMetadataLastVersion;
+use serde::Serialize;
+use mycelium::types::metadata::ErrorMetadata;
 
 pub type SubstrateApiSchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
 
@@ -26,6 +33,30 @@ pub struct Header {
 pub struct BlockDetail {
     number: String,
     header: Header,
+}
+
+#[derive(SimpleObject, Serialize)]
+pub struct Metadata{
+    metadata: Json<RuntimeMetadataLastVersion>,
+    pallets: HashMap<String, PalletMetadata>,
+    events: Vec<Json<EventMetadata>>,
+    errors: Vec<Json<ErrorMetadata>>,
+}
+
+impl From<mycelium::Metadata> for Metadata{
+
+    fn from(meta: mycelium::Metadata) -> Self {
+        Self {
+            metadata: Json(meta.metadata),
+            pallets: meta.pallets,
+            events: meta.events.into_iter().map(|((_k1,_k2),event)|{
+                Json(event)
+            }).collect(),
+            errors: meta.errors.into_iter().map(|((_k1, _k2),error)|{
+                Json(error)
+            }).collect(),
+        }
+    }
 }
 
 
@@ -66,9 +97,10 @@ impl QueryRoot {
         &self,
         #[graphql(desc = "url of substrate node endpoint")]
         url: String,
-    ) -> Result<Option<mycelium::Metadata>, mycelium::Error> {
+    ) -> Result<Option<Metadata>, mycelium::Error> {
         let api = Api::new(&url).await?;
-        Ok(Some(api.metadata().clone()))
+        let meta = api.metadata().clone();
+        Ok(Some(meta.into()))
     }
 
     async fn rpc_methods(

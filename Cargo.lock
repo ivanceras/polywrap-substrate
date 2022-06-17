@@ -1298,6 +1298,7 @@ dependencies = [
  "async-graphql",
  "mycelium",
  "node-template-runtime",
+ "serde",
  "serde_json",
  "slab",
 ]
