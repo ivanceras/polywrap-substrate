@@ -304,6 +304,7 @@ impl TryFrom<RuntimeMetadataPrefixed> for Metadata {
                 Err(InvalidMetadataError::TypeDefNotVariant(type_id))
             }
         };
+
         let pallets = metadata
             .pallets
             .iter()

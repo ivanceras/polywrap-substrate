@@ -29,6 +29,7 @@ pub struct BlockDetail {
 }
 
 
+
 pub struct QueryRoot;
 
 #[Object]
@@ -108,6 +109,17 @@ impl QueryRoot {
         let hash = BaseApi::new(&url)
        .fetch_block_hash(number).await?;
         Ok(hash.map(|h|h.to_string()))
+    }
+
+    //TODO: determine the type in the storage and make a matching statement branch for each type
+    async fn storage_value_as_u32(&self,
+        #[graphql(desc = "url of substrate node endpoint")]
+        url: String,
+        #[graphql(desc = "the module name")]
+        module: String,
+        #[graphql(desc = "the storage name in the module")]
+        storage_name: String) -> Result<Option<u32>, mycelium::Error> {
+        Api::new(&url).await?.fetch_storage_value(&module, &storage_name).await
     }
 
 }
