@@ -1,5 +1,5 @@
-/// Do a sudoer function Balance::set_balance
-/// This is using Alice as the sudo user then set the balance amount to Bob
+//! Do a sudoer function Balance::set_balance
+//! This is using Alice as the sudo user then set the balance amount to Bob
 #![allow(warnings)]
 use codec::Compact;
 use mycelium::{

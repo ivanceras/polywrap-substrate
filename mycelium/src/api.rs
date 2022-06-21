@@ -13,6 +13,7 @@ use sp_version::RuntimeVersion;
 mod base_api;
 mod extrinsic_api;
 mod storage_api;
+mod balance_api;
 
 /// A more complex Api which requires prefetching some fields such as Metadata, genesis_hash and
 /// runtime version

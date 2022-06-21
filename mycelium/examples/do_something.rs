@@ -1,4 +1,4 @@
-/// This exampel call on an example pallet TemplateModule::do_something function
+//! This exampel call on an example pallet TemplateModule::do_something function
 #![deny(warnings)]
 use mycelium::{
     types::extrinsic_params::{

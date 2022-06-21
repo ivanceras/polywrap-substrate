@@ -1,4 +1,4 @@
-/// This example transfer all of Alice balance units to Charlie
+//! This example transfer all of Alice balance units to Charlie
 #![allow(warnings)]
 use codec::Compact;
 use mycelium::{
