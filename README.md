@@ -25,24 +25,20 @@ Navigate to: http://localhost:8000
 Interact with the graphql endpoint with this example query to get the block
 ```graphql
 {
-
-  block(number: 0) {
-    number
-    header {
-      parentHash
-      extrinsicsRoot
-      stateRoot
-    }
+  block(url: "http://localhost:9933", number: 0) {
+    block
   }
 }
 ```
 # Show the metadata
 
 ```graphql
-
 {
-  metadata {
+  metadata(url: "http://localhost:9933") {
+    metadata
     pallets
+    events
+    errors
   }
 }
 ```
@@ -51,7 +47,23 @@ Interact with the graphql endpoint with this example query to get the block
 
 ```graphql
 {
-  rpcMethods
+  rpcMethods(url: "http://localhost:9933")
+}
+```
+
+# You can even call multiple methods in the same graphql
+```graphql
+{
+  block(url: "http://localhost:9933", number: 0) {
+    block
+  }
+  rpcMethods(url: "http://localhost:9933")
+  metadata(url: "http://localhost:9933") {
+    metadata
+    pallets
+    events
+    errors
+  }
 }
 ```
 

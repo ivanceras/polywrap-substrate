@@ -4,29 +4,61 @@ schema {
 }
 
 type BlockDetail {
-  number: String!
-  header: Header!
+  block: JSON!
 }
 
-type Header {
-  parentHash: String!
-  stateRoot: String!
-  extrinsicsRoot: String!
-}
+# A scalar that can represent any JSON value.
+scalar JSON
 
 # A scalar that can represent any JSON Object value.
 scalar JSONObject
 
-# Runtime metadata.
 type Metadata {
+  metadata: JSON!
   pallets: JSONObject!
+  events: [JSON!]!
+  errors: [JSON!]!
 }
 
 type QueryRoot {
   block(
+    # url of substrate node endpoint
+    url: String!
+
     # the block number
     number: Int!
   ): BlockDetail
-  metadata: Metadata
-  rpcMethods: [String!]
+  metadata(
+    # url of substrate node endpoint
+    url: String!
+  ): Metadata
+  rpcMethods(
+    # url of substrate node endpoint
+    url: String!
+  ): [String!]
+  runtimeVersion(
+    # url of substrate node endpoint
+    url: String!
+  ): JSON
+  genesisHash(
+    # url of substrate node endpoint
+    url: String!
+  ): String
+  blockHash(
+    # url of substrate node endpoint
+    url: String!
+
+    # the block number
+    number: Int!
+  ): String
+  storageValueAsU32(
+    # url of substrate node endpoint
+    url: String!
+
+    # the module name
+    module: String!
+
+    # the storage name in the module
+    storageName: String!
+  ): Int
 }
