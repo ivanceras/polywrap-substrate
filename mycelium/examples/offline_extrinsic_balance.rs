@@ -1,3 +1,4 @@
+/// An example using an offline extrinsic, using the types of the instantiated chain
 #![allow(warnings)]
 use codec::Compact;
 use mycelium::{

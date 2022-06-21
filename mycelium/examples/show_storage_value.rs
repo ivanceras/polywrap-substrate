@@ -1,3 +1,4 @@
+/// This example get the values from the storage items from their respective pallets
 #![deny(warnings)]
 use mycelium::Api;
 

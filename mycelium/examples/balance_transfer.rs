@@ -1,3 +1,4 @@
+/// This example transfer some amount from Alice to Charlie
 #![allow(warnings)]
 use codec::Compact;
 use mycelium::{

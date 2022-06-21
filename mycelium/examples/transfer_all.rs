@@ -1,5 +1,4 @@
-/// Do a sudoer function Balance::set_balance
-/// This is using Alice as the sudo user then set the balance amount to Bob
+/// This example transfer all of Alice balance units to Charlie
 #![allow(warnings)]
 use codec::Compact;
 use mycelium::{
@@ -17,42 +16,34 @@ use sp_keyring::AccountKeyring;
 
 #[tokio::main]
 async fn main() -> Result<(), mycelium::Error> {
-    let sudoer: sp_core::sr25519::Pair = AccountKeyring::Alice.pair();
+    let from: sp_core::sr25519::Pair = AccountKeyring::Alice.pair();
 
-    let to = AccountKeyring::Bob.to_account_id();
+    let to = AccountKeyring::Charlie.to_account_id();
 
     let api = Api::new("http://localhost:9933").await?;
     let metadata: &Metadata = api.metadata();
 
     let balance_pallet = metadata.pallet("Balances")?;
-    let set_balance_call_index = balance_pallet
+    let balance_transfer_call_index = balance_pallet
         .calls
-        .get("set_balance")
+        .get("transfer_all")
         .expect("function name does not exist");
 
     //u128::MAX = 340_282_366_920_938_463_463_374_607_431_768_211_455u128
     // 1Yunit = 1_000_000_000_000_000_000_000_000_000_000_000_000_u128
     // 1Munit = 1_000_000_000_000_000_000_u128
     let balance_call = (
-        [balance_pallet.index, *set_balance_call_index],
+        [balance_pallet.index, *balance_transfer_call_index],
         GenericAddress::Id(to),
-        Compact(42_000_000_000_000_000_000_u128), //new free
-        Compact(42_000_000_000_000_000_000_u128), //new reserved
+        true,
     );
-
-    let sudo_pallet = metadata.pallet("Sudo")?;
-    let sudo_call_index = sudo_pallet
-        .calls
-        .get("sudo")
-        .expect("function name does not exist");
-    let sudo_call = ([sudo_pallet.index, *sudo_call_index as u8], balance_call);
 
     let xt = api.compose_extrinsics::<
         sp_core::sr25519::Pair,
         PlainTipExtrinsicParams,
         PlainTip,
-        ([u8;2],([u8; 2], GenericAddress, Compact<u128>, Compact<u128>)),
-    >(Some(sudoer), sudo_call, None, None)
+        ([u8; 2], GenericAddress, bool),
+    >(Some(from), balance_call, None, None)
     .await?;
 
     let encoded = xt.hex_encode();
