@@ -95,16 +95,11 @@ pub enum MetadataError {
 }
 
 /// Runtime metadata.
-#[derive(async_graphql::SimpleObject, Clone, Debug, Serialize)]
+#[derive(Clone, Debug)]
 pub struct Metadata {
-    #[graphql(skip)]
     pub metadata: RuntimeMetadataLastVersion,
     pub pallets: HashMap<String, PalletMetadata>,
-    #[graphql(skip)]
-    #[serde(skip)]
     pub events: HashMap<(u8, u8), EventMetadata>,
-    #[graphql(skip)]
-    #[serde(skip)]
     pub errors: HashMap<(u8, u8), ErrorMetadata>,
 }
 

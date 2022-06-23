@@ -1958,13 +1958,13 @@ dependencies = [
 name = "mycelium"
 version = "0.1.0"
 dependencies = [
- "async-graphql",
  "delegate",
  "frame-metadata",
  "getrandom 0.2.6",
  "hex",
  "log",
  "node-template-runtime",
+ "pallet-balances",
  "parity-scale-codec",
  "reqwest",
  "scale-info",
