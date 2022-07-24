@@ -5,41 +5,70 @@ use crate::{
         extrinsic_params::{
             PlainTip,
             PlainTipExtrinsicParams,
+            PlainTipExtrinsicParamsBuilder,
         },
         extrinsics::GenericAddress,
     },
     Api,
-    Metadata,
 };
 use codec::Compact;
 use sp_core::{
-    crypto::AccountId32,
-    sr25519::Pair,
+    crypto::{
+        AccountId32,
+        Pair,
+    },
+    H256,
 };
-use sp_keyring::AccountKeyring;
+use sp_runtime::{
+    generic::Era,
+    MultiSignature,
+    MultiSigner,
+};
+
+const BALANCES: &str = "Balances";
 
 impl Api {
-    pub async fn balance_transfer(
+    /// transfer an amount using a signer `from` to account `to` with `amount` and `tip`
+    pub async fn balance_transfer<P>(
         &self,
-        from: Pair,
+        from: P,
         to: AccountId32,
         amount: u128,
-    ) -> Result<Option<serde_json::Value>, Error> {
-        let balance_pallet = self.metadata.pallet("Balances")?;
-        let balance_transfer_call_index = balance_pallet
-            .calls
-            .get("transfer")
-            .expect("unable to find transfer function");
+        tip: Option<u128>,
+    ) -> Result<Option<H256>, Error>
+    where
+        P: Pair,
+        MultiSigner: From<P::Public>,
+        MultiSignature: From<P::Signature>,
+    {
+        let balance_call_index: [u8; 2] =
+            self.pallet_call_index(BALANCES, "transfer")?;
 
-        let balance_call = (
-            [balance_pallet.index, *balance_transfer_call_index],
-            GenericAddress::Id(to),
-            Compact(amount),
-        );
-        let xt = self.compose_extrinsics::<Pair, PlainTipExtrinsicParams, PlainTip,
-            ([u8; 2], GenericAddress, Compact<u128>),
-            >(Some(from), balance_call, None, None).await?;
-        let encoded = xt.hex_encode();
-        self.author_submit_extrinsic(&encoded).await
+        let balance_call: ([u8; 2], GenericAddress, Compact<u128>) =
+            (balance_call_index, GenericAddress::Id(to), Compact(amount));
+
+        if let Some(tip) = tip {
+            let genesis_hash = self.genesis_hash();
+
+            let tx_params = PlainTipExtrinsicParamsBuilder::new()
+                .tip(tip)
+                .era(Era::Immortal, genesis_hash);
+
+            let result = self.sign_and_submit_extrinsic_with_params::<P, PlainTipExtrinsicParams, PlainTip,
+            ([u8; 2], GenericAddress, Compact<u128>)>(from, balance_call, Some(tx_params))
+            .await?;
+            Ok(result)
+        } else {
+            //Note: would be exequivalent to calling sign_and_submit_extrisic_with_params and
+            //passing None to the last argument of the function.
+            //This is using the simplified version of test it's usage as well
+            let result = self
+                .sign_and_submit_extrinsic::<P, ([u8; 2], GenericAddress, Compact<u128>)>(
+                    from,
+                    balance_call,
+                )
+                .await?;
+            Ok(result)
+        }
     }
 }

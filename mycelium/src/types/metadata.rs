@@ -25,6 +25,7 @@ use codec::{
     Error as CodecError,
 };
 use frame_metadata::{
+    v14::StorageEntryType,
     PalletConstantMetadata,
     RuntimeMetadata,
     RuntimeMetadataLastVersion,
@@ -165,6 +166,57 @@ impl Metadata {
     /// Return the runtime metadata.
     pub fn get_runtime_metadata(&self) -> &RuntimeMetadataLastVersion {
         &self.metadata
+    }
+
+    pub fn storage_value_type(
+        &self,
+        pallet_name: &str,
+        storage_name: &str,
+    ) -> Result<Option<&Type<PortableForm>>, MetadataError> {
+        let pallet = self.pallet(pallet_name)?;
+        let storage_metadata = pallet.storage(storage_name)?;
+        let ty_id = match storage_metadata.ty {
+            StorageEntryType::Plain(plain) => Some(plain.id()),
+            _ => None,
+        };
+        let portable_form =
+            ty_id.map(|ty_id| self.get_resolve_type(ty_id)).flatten();
+        Ok(portable_form)
+    }
+
+    pub fn pallet_call_index(
+        &self,
+        pallet_name: &str,
+        call_name: &str,
+    ) -> Result<[u8; 2], MetadataError> {
+        let pallet = self.pallet(pallet_name)?;
+        let call_index = pallet.calls.get(call_name).ok_or_else(|| {
+            MetadataError::CallNotFound(call_name.to_string())
+        })?;
+        Ok([pallet.index, *call_index])
+    }
+
+    pub fn storage_map_type(
+        &self,
+        pallet_name: &str,
+        storage_name: &str,
+    ) -> Result<Option<(&Type<PortableForm>, &Type<PortableForm>)>, MetadataError>
+    {
+        let pallet = self.pallet(pallet_name)?;
+        let storage_metadata = pallet.storage(storage_name)?;
+        match storage_metadata.ty {
+            StorageEntryType::Map { key, value, .. } => {
+                let ty_key = self.get_resolve_type(key.id());
+                let ty_value = self.get_resolve_type(value.id());
+                match (ty_key, ty_value) {
+                    (Some(ty_key), Some(ty_value)) => {
+                        Ok(Some((ty_key, ty_value)))
+                    }
+                    _ => Ok(None),
+                }
+            }
+            _ => Ok(None),
+        }
     }
 }
 
@@ -323,6 +375,11 @@ impl TryFrom<RuntimeMetadataPrefixed> for Metadata {
                         storage
                             .entries
                             .iter()
+                            .inspect(|entry| {
+                                if entry.name == "Something" {
+                                    println!("entry: {:#?}", entry);
+                                }
+                            })
                             .map(|entry| (entry.name.clone(), entry.clone()))
                             .collect()
                     });

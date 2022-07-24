@@ -7,6 +7,10 @@ use codec::{
     Decode,
     Encode,
 };
+use scale_info::{
+    form::PortableForm,
+    Type,
+};
 use sp_core::storage::StorageKey;
 
 impl Api {
@@ -24,6 +28,16 @@ impl Api {
         self.fetch_storage_by_key_hash(storage_key).await
     }
 
+    pub async fn fetch_opaque_storage_value(
+        &self,
+        module: &str,
+        storage_name: &str,
+    ) -> Result<Option<Vec<u8>>, Error> {
+        let storage_key =
+            self.metadata.storage_value_key(module, storage_name)?;
+        self.fetch_opaque_storage_by_key_hash(storage_key).await
+    }
+
     pub async fn fetch_storage_map<K, V>(
         &self,
         module: &str,
@@ -37,6 +51,20 @@ impl Api {
         let storage_key =
             self.metadata.storage_map_key(module, storage_name, key)?;
         self.fetch_storage_by_key_hash(storage_key).await
+    }
+
+    pub async fn fetch_opaque_storage_map<K>(
+        &self,
+        module: &str,
+        storage_name: &str,
+        key: K,
+    ) -> Result<Option<Vec<u8>>, Error>
+    where
+        K: Encode,
+    {
+        let storage_key =
+            self.metadata.storage_map_key(module, storage_name, key)?;
+        self.fetch_opaque_storage_by_key_hash(storage_key).await
     }
 
     pub async fn fetch_storage_double_map<K, Q, V>(
@@ -60,6 +88,26 @@ impl Api {
         self.fetch_storage_by_key_hash(storage_key).await
     }
 
+    pub async fn fetch_opaque_storage_double_map<K, Q>(
+        &self,
+        module: &str,
+        storage_name: &str,
+        first: K,
+        second: Q,
+    ) -> Result<Option<Vec<u8>>, Error>
+    where
+        K: Encode,
+        Q: Encode,
+    {
+        let storage_key = self.metadata.storage_double_map_key(
+            module,
+            storage_name,
+            first,
+            second,
+        )?;
+        self.fetch_opaque_storage_by_key_hash(storage_key).await
+    }
+
     pub async fn fetch_storage_by_key_hash<V>(
         &self,
         storage_key: StorageKey,
@@ -73,7 +121,7 @@ impl Api {
         }
     }
 
-    async fn fetch_opaque_storage_by_key_hash(
+    pub async fn fetch_opaque_storage_by_key_hash(
         &self,
         storage_key: StorageKey,
     ) -> Result<Option<Vec<u8>>, Error> {
@@ -86,40 +134,100 @@ impl Api {
             Some(value) => {
                 let value_str = value.as_str().expect("must be a str");
                 let data = Vec::from_hex(value_str)?;
-                println!("data: {:?}", data);
                 Ok(Some(data))
             }
             None => Ok(None),
         }
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+    pub async fn fetch_opaque_storage_map_paged<K>(
+        &self,
+        module: &str,
+        storage_name: &str,
+        count: u32,
+        start_key: Option<K>,
+    ) -> Result<Option<Vec<Vec<u8>>>, Error>
+    where
+        K: Encode,
+    {
+        let storage_keys: Option<Vec<StorageKey>> = self
+            .fetch_opaque_storage_keys_paged(
+                module,
+                storage_name,
+                count,
+                start_key,
+            )
+            .await?;
 
-    #[tokio::test]
-    async fn show_total_balance_total_issuance() {
-        let api = Api::new("http://localhost:9933")
-            .await
-            .expect("must not error");
-        let result: Result<Option<u128>, Error> =
-            api.fetch_storage_value("Balances", "TotalIssuance").await;
-        println!("result: {:?}", result);
-        assert!(result.is_ok());
-        let result = result.ok().flatten().unwrap();
-        // only succeed when the substrate node is fresh or unmodified
-        assert_eq!(result, 4611686018427387904);
+        if let Some(storage_keys) = storage_keys {
+            let mut storage_values = Vec::with_capacity(storage_keys.len());
+            for storage_key in storage_keys.into_iter() {
+                if let Some(bytes) =
+                    self.fetch_opaque_storage_by_key_hash(storage_key).await?
+                {
+                    storage_values.push(bytes);
+                }
+            }
+            Ok(Some(storage_values))
+        } else {
+            Ok(None)
+        }
     }
 
-    #[tokio::test]
-    async fn show_template_module() {
-        let api = Api::new("http://localhost:9933")
-            .await
-            .expect("must not error");
-        let result: Result<Option<u32>, Error> =
-            api.fetch_storage_value("TemplateModule", "Something").await;
-        println!("result: {:?}", result);
-        assert!(result.is_ok());
+    pub fn storage_map_type(
+        &self,
+        module: &str,
+        storage_name: &str,
+    ) -> Result<Option<(&Type<PortableForm>, &Type<PortableForm>)>, Error> {
+        Ok(self.metadata().storage_map_type(module, storage_name)?)
+    }
+
+    pub async fn fetch_opaque_storage_keys_paged<K>(
+        &self,
+        module: &str,
+        storage_name: &str,
+        count: u32,
+        start_key: Option<K>,
+    ) -> Result<Option<Vec<StorageKey>>, Error>
+    where
+        K: Encode,
+    {
+        let storage_key =
+            self.metadata.storage_map_key_prefix(module, storage_name)?;
+        let start_storage_key = if let Some(start_key) = start_key {
+            Some(self.metadata.storage_map_key(
+                module,
+                storage_name,
+                start_key,
+            )?)
+        } else {
+            None
+        };
+        let value = self
+            .base_api
+            .json_request_value(
+                "state_getKeysPaged",
+                (storage_key, count, start_storage_key),
+            )
+            .await?;
+
+        match value {
+            Some(value) => {
+                let value_array =
+                    value.as_array().expect("must be an array of str");
+                let data: Vec<StorageKey> = value_array
+                    .into_iter()
+                    .map(|v| {
+                        let value_str =
+                            v.as_str().expect("each item must be a str");
+                        let bytes = Vec::from_hex(value_str)
+                            .expect("must convert hex value to bytes");
+                        StorageKey(bytes)
+                    })
+                    .collect();
+                Ok(Some(data))
+            }
+            None => Ok(None),
+        }
     }
 }

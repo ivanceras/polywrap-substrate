@@ -1,4 +1,4 @@
-#![allow(warnings)]
+#![deny(warnings)]
 
 pub use api::{
     Api,
@@ -11,9 +11,10 @@ pub use types::metadata::Metadata;
 pub use codec;
 pub use frame_metadata;
 pub use sp_core;
+pub use sp_runtime;
 pub use sp_version;
 
 mod api;
 mod error;
 pub mod types;
-mod utils;
+pub mod utils;

@@ -39,6 +39,7 @@ pub struct JsonResult {
 
 /// This api doesn't need Metadata, Runtime version to work
 /// It just fetch the content right away
+#[derive(Clone)]
 pub struct BaseApi {
     /// the url of the substrate node we are running the rpc call from
     url: String,
@@ -171,10 +172,7 @@ impl BaseApi {
             .json_request_value("chain_getHeader", vec![hash])
             .await?;
         match value {
-            Some(value) => {
-                println!("value: {:?}", value);
-                Ok(Some(serde_json::from_value(value)?))
-            }
+            Some(value) => Ok(Some(serde_json::from_value(value)?)),
             None => Ok(None),
         }
     }
@@ -212,12 +210,20 @@ impl BaseApi {
         }
     }
 
-    pub async fn submit_extrinsic(
+    pub async fn author_submit_extrinsic(
         &self,
-        hex_extrinsic: &str,
-    ) -> Result<Option<serde_json::Value>, Error> {
-        self.json_request_value("author_submitExtrinsic", vec![hex_extrinsic])
-            .await
+        hex_extrinsic: String,
+    ) -> Result<Option<H256>, Error> {
+        let value = self
+            .json_request_value("author_submitExtrinsic", vec![hex_extrinsic])
+            .await?;
+        match value {
+            Some(value) => {
+                let value_str = value.as_str().expect("must be a string");
+                Ok(Some(H256::from_hex(value_str)?))
+            }
+            None => Ok(None),
+        }
     }
 
     /// Make a rpc request and return the result.result if it has value
@@ -250,7 +256,6 @@ impl BaseApi {
             method: method.to_string(),
             params: serde_json::to_value(params)?,
         };
-        println!("param: {:#?}", param);
         let response: serde_json::Value = reqwest::Client::new()
             .post(&self.url)
             .json(&param)

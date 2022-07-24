@@ -3,20 +3,21 @@ use crate::{
     Metadata,
 };
 pub use base_api::BaseApi;
-use codec::Decode;
 use delegate::delegate;
 use serde::de::DeserializeOwned;
 use sp_core::H256;
 use sp_runtime::traits::Header;
 use sp_version::RuntimeVersion;
 
+mod balance_api;
 mod base_api;
+mod constant_api;
 mod extrinsic_api;
 mod storage_api;
-mod balance_api;
 
 /// A more complex Api which requires prefetching some fields such as Metadata, genesis_hash and
 /// runtime version
+#[derive(Clone)]
 pub struct Api {
     base_api: BaseApi,
     metadata: Metadata,
@@ -36,17 +37,23 @@ impl Api {
             pub async fn chain_get_header<H>(&self, hash: H256) -> Result<Option<H>,Error>
                 where H:Header + DeserializeOwned;
 
-            #[call(submit_extrinsic)]
             pub async fn author_submit_extrinsic(
                 &self,
-                hex_extrinsic: &str,
-            ) -> Result<Option<serde_json::Value>, Error>;
+                hex_extrinsic: String,
+            ) -> Result<Option<H256>, Error>;
+
+            pub async fn fetch_block_hash(&self, n: u32) -> Result<Option<H256>, Error>;
+
+            pub async fn fetch_genesis_hash(&self) -> Result<Option<H256>, Error> ;
+
 
         }
     }
 
     pub async fn new(url: &str) -> Result<Self, Error> {
         let base_api = BaseApi::new(url);
+
+        //TODO: future join this 3 calls, to make the calls concurrent
         let metadata = match base_api.fetch_metadata().await? {
             Some(metadata) => metadata,
             None => return Err(Error::NoMetadata),

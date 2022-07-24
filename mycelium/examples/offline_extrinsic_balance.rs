@@ -1,17 +1,12 @@
 //! An example using an offline extrinsic, using the types of the instantiated chain
-#![allow(warnings)]
-use codec::Compact;
+#![deny(warnings)]
 use mycelium::{
-    types::{
-        extrinsic_params::{
-            PlainTip,
-            PlainTipExtrinsicParams,
-            PlainTipExtrinsicParamsBuilder,
-        },
-        extrinsics::GenericAddress,
+    types::extrinsic_params::{
+        PlainTip,
+        PlainTipExtrinsicParams,
+        PlainTipExtrinsicParamsBuilder,
     },
     Api,
-    Metadata,
 };
 use node_template_runtime::{
     BalancesCall,
@@ -32,7 +27,6 @@ async fn main() -> Result<(), mycelium::Error> {
     let to = AccountKeyring::Bob.to_account_id();
 
     let api = Api::new("http://localhost:9933").await?;
-    let metadata: &Metadata = api.metadata();
 
     let genesis_hash: H256 = api.genesis_hash();
 
@@ -54,17 +48,16 @@ async fn main() -> Result<(), mycelium::Error> {
         value: 69_420,
     });
 
-    let xt = api.compose_extrinsics::<
-        sp_core::sr25519::Pair,
-        PlainTipExtrinsicParams,
-        PlainTip,
-        Call,
-    >(Some(from), call, Some(head_hash), Some(tx_params))
-    .await?;
+    let xt = api
+        .sign_extrinsic_with_params_and_hash::<sp_core::sr25519::Pair, PlainTipExtrinsicParams, PlainTip, Call>(
+            from,
+            call,
+            Some(tx_params),
+            Some(head_hash),
+        )
+        .await?;
 
-    let encoded = xt.hex_encode();
-    println!("encoded: {}", encoded);
-    let result = api.author_submit_extrinsic(&encoded).await?;
+    let result = api.submit_extrinsic(xt).await?;
     println!("result: {:?}", result);
     Ok(())
 }
