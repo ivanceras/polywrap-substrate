@@ -5,8 +5,18 @@
         <meta name="referrer" content="origin"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <title>Y forum</title>
-        <script src="index.ts"></script>
+        <script src="dist/bundle.js"></script>
+    <script>
+        function showAccounts(){
+            console.log("show accounts in index...");
+            console.log("window.test:", window.test);
+            window.test.default();
+        }
+    
+
+    </script>
     </head>
     <body>
+        <button onclick="showAccounts()">Show accounts</button>
     </body>
 </html>

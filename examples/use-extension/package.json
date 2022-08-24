@@ -1,16 +1,18 @@
 {
+  "type": "module",
   "dependencies": {
-    "@polkadot/api": "^8.11.1",
-    "@polkadot/wasm-crypto": "^6.3.1",
-    "@polkadot/extension-dapp": "0.44.2"
+    "webpack": "^5.74.0"
   },
   "devDependencies": {
-    "ts-node": "^10.8.2",
+    "@polkadot/api": "^8.11.1",
+    "@polkadot/extension-dapp": "0.44.2",
+    "@polkadot/wasm-crypto": "^6.3.1",
     "parcel-bundler": "~1.12.5",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "webpack-cli": "^4.10.0"
   },
   "scripts": {
-    "build": "parcel build index.html",
+    "build": "webpack --config webpack.config.js2",
     "start": "yarn build && parcel serve -p 2020 index.html"
   }
 }
