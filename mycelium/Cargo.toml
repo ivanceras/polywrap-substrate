@@ -16,7 +16,7 @@ hex = "0.4.3"
 codec = { package = "parity-scale-codec", version = "3.0.0", features = ['derive'] }
 frame-metadata = { version = "15.0.0", features = ["v14"] }
 scale-info = { version = "2.0.1", features = ["derive", "serde"] }
-thiserror = "1.0.30"
+thiserror = "1.0.35"
 log = "0.4"
 # put this here to avoid the getrandom compilation error for wasm32 target
 getrandom = { version = "0.2", features = ["js"] }
